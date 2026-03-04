@@ -1,11 +1,14 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
+import { databaseConfig } from './config/database.config';
 
 /**
  * Root Module ของแอปพลิเคชัน
  * - ConfigModule: โหลด .env ให้ใช้งานได้ทั่วทั้งแอป
- * - จะเพิ่ม TypeOrmModule, AuthModule, UsersModule ฯลฯ ในขั้นตอนถัดไป
+ * - TypeOrmModule: เชื่อมต่อฐานข้อมูล MSSQL ผ่าน TypeORM
+ * - จะเพิ่ม AuthModule, UsersModule, FormRequestsModule ฯลฯ ในขั้นตอนถัดไป
  */
 @Module({
   imports: [
@@ -14,6 +17,9 @@ import { AppController } from './app.controller';
       isGlobal: true,
       envFilePath: '.env',
     }),
+
+    // เชื่อมต่อฐานข้อมูล MSSQL ผ่าน TypeORM
+    TypeOrmModule.forRootAsync(databaseConfig),
   ],
   controllers: [AppController],
   providers: [],
