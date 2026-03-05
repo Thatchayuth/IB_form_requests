@@ -75,7 +75,7 @@ export class UserManagementComponent implements OnInit {
     this.userService.findAll({ page: this.page, limit: this.limit, search: this.search }).subscribe({
       next: (res) => {
         this.users = res.data.data;
-        this.totalRecords = res.data.total;
+        this.totalRecords = res.data.meta.total;
         this.loading = false;
       },
       error: () => {
@@ -114,7 +114,7 @@ export class UserManagementComponent implements OnInit {
         this.messageService.add({
           severity: 'success',
           summary: 'สำเร็จ',
-          detail: `เปลี่ยนบทบาท ${user.fullName} เป็น ${newRole === 'admin' ? 'ผู้ดูแลระบบ' : 'ผู้ใช้งาน'}`,
+          detail: `เปลี่ยนบทบาท ${user.fullName} เป็น ${newRole === UserRole.ADMIN ? 'ผู้ดูแลระบบ' : 'ผู้ใช้งาน'}`,
         });
       },
       error: () => {

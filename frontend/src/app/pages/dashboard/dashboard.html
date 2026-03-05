@@ -20,7 +20,7 @@
           [style.background]="card.color + '15'"
           [style.color]="card.color"
         >
-          <i [class]="card.icon" class="text-xl"></i>
+          <i [ngClass]="card.icon" class="text-xl"></i>
         </div>
         <div class="flex flex-col">
           <span class="text-2xl font-bold text-slate-800">{{ card.value }}</span>

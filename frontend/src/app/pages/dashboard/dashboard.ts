@@ -74,13 +74,13 @@ export class DashboardComponent implements OnInit {
 
     // Status chart
     const statusLabels: Record<string, string> = {
-      draft: 'ร่าง',
-      submitted: 'ส่งแล้ว',
-      under_review: 'กำลังตรวจ',
-      approved: 'อนุมัติ',
-      rejected: 'ปฏิเสธ',
-      completed: 'เสร็จสิ้น',
-      cancelled: 'ยกเลิก',
+      Draft: 'ร่าง',
+      Submitted: 'ส่งแล้ว',
+      UnderReview: 'กำลังตรวจ',
+      Approved: 'อนุมัติ',
+      Rejected: 'ปฏิเสธ',
+      Completed: 'เสร็จสิ้น',
+      Cancelled: 'ยกเลิก',
     };
 
     const statusColors = ['#94a3b8', '#3b82f6', '#f59e0b', '#10b981', '#ef4444', '#6366f1', '#9ca3af'];
@@ -97,10 +97,10 @@ export class DashboardComponent implements OnInit {
 
     // Priority chart
     const priorityLabels: Record<string, string> = {
-      low: 'ต่ำ',
-      medium: 'ปานกลาง',
-      high: 'สูง',
-      urgent: 'เร่งด่วน',
+      Low: 'ต่ำ',
+      Medium: 'ปานกลาง',
+      High: 'สูง',
+      Urgent: 'เร่งด่วน',
     };
     const priorityColors = ['#10b981', '#f59e0b', '#ef4444', '#ec4899'];
 
@@ -120,9 +120,9 @@ export class DashboardComponent implements OnInit {
     if (!this.stats) return [];
     return [
       { label: 'คำร้องทั้งหมด', value: this.stats.total, icon: 'pi pi-file', color: '#3b82f6' },
-      { label: 'รออนุมัติ', value: this.stats.byStatus?.['submitted'] || 0, icon: 'pi pi-clock', color: '#f59e0b' },
-      { label: 'อนุมัติแล้ว', value: this.stats.byStatus?.['approved'] || 0, icon: 'pi pi-check-circle', color: '#10b981' },
-      { label: 'ปฏิเสธ', value: this.stats.byStatus?.['rejected'] || 0, icon: 'pi pi-times-circle', color: '#ef4444' },
+      { label: 'รออนุมัติ', value: this.stats.byStatus?.['Submitted'] || 0, icon: 'pi pi-clock', color: '#f59e0b' },
+      { label: 'อนุมัติแล้ว', value: this.stats.byStatus?.['Approved'] || 0, icon: 'pi pi-check-circle', color: '#10b981' },
+      { label: 'ปฏิเสธ', value: this.stats.byStatus?.['Rejected'] || 0, icon: 'pi pi-times-circle', color: '#ef4444' },
     ];
   }
 }

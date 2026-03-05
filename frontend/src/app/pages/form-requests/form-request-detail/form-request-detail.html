@@ -26,7 +26,7 @@
           routerLink="/form-requests"
         />
 
-        @if (formRequest.status === 'draft') {
+        @if (formRequest.status === 'Draft') {
           <p-button
             label="แก้ไข"
             icon="pi pi-pencil"
@@ -40,7 +40,7 @@
           />
         }
 
-        @if (formRequest.status !== 'cancelled' && formRequest.status !== 'completed') {
+        @if (formRequest.status !== 'Cancelled' && formRequest.status !== 'Completed') {
           <p-button
             label="ยกเลิก"
             icon="pi pi-times"
@@ -50,7 +50,7 @@
           />
         }
 
-        @if (auth.isAdmin() && formRequest.status !== 'draft' && formRequest.status !== 'cancelled') {
+        @if (auth.isAdmin() && formRequest.status !== 'Draft' && formRequest.status !== 'Cancelled') {
           <p-button
             label="เปลี่ยนสถานะ"
             icon="pi pi-cog"

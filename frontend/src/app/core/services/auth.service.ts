@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { Observable, tap, catchError, throwError } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { LoginRequest, LoginResponse, User, ApiResponse } from '../../core/models';
+import { LoginRequest, LoginResponse, User, ApiResponse, UserRole } from '../../core/models';
 
 /**
  * AuthService — จัดการ Authentication (AD Login)
@@ -22,7 +22,7 @@ export class AuthService {
   isLoggedIn = computed(() => !!this.currentUser() && !!this.getToken());
 
   /** Computed: เป็น Admin หรือไม่ */
-  isAdmin = computed(() => this.currentUser()?.role === 'admin');
+  isAdmin = computed(() => this.currentUser()?.role === UserRole.ADMIN);
 
   constructor(
     private http: HttpClient,
@@ -40,8 +40,8 @@ export class AuthService {
       .post<ApiResponse<LoginResponse>>(`${this.API}/auth/login`, credentials)
       .pipe(
         tap((res) => {
-          const { accessToken, user } = res.data;
-          this.setToken(accessToken);
+          const { access_token, user } = res.data;
+          this.setToken(access_token);
           this.setUser(user);
           this.currentUser.set(user);
         }),

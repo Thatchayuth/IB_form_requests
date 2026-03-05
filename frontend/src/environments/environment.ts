@@ -4,5 +4,5 @@
  */
 export const environment = {
   production: false,
-  apiUrl: 'http://localhost:3000/api',  // Backend NestJS
+  apiUrl: '/api',  // ใช้ relative path — proxy จะ forward ไป http://localhost:3000
 };

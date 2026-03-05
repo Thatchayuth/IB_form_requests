@@ -172,10 +172,10 @@ export class NotificationPanelComponent implements OnInit, OnDestroy {
   getNotificationIcon(type: NotificationType): string {
     const map: Record<string, string> = {
       [NotificationType.STATUS_CHANGE]: 'pi pi-sync',
-      [NotificationType.NEW_REQUEST]: 'pi pi-file-plus',
-      [NotificationType.APPROVED]: 'pi pi-check-circle',
-      [NotificationType.REJECTED]: 'pi pi-times-circle',
-      [NotificationType.COMMENT]: 'pi pi-comment',
+      [NotificationType.ASSIGNMENT]: 'pi pi-user-plus',
+      [NotificationType.APPROVAL]: 'pi pi-check-circle',
+      [NotificationType.REJECTION]: 'pi pi-times-circle',
+      [NotificationType.REMINDER]: 'pi pi-bell',
       [NotificationType.SYSTEM]: 'pi pi-info-circle',
     };
     return map[type] || 'pi pi-bell';
@@ -185,10 +185,10 @@ export class NotificationPanelComponent implements OnInit, OnDestroy {
   getNotificationColor(type: NotificationType): string {
     const map: Record<string, string> = {
       [NotificationType.STATUS_CHANGE]: '#3b82f6',
-      [NotificationType.NEW_REQUEST]: '#8b5cf6',
-      [NotificationType.APPROVED]: '#10b981',
-      [NotificationType.REJECTED]: '#ef4444',
-      [NotificationType.COMMENT]: '#f59e0b',
+      [NotificationType.ASSIGNMENT]: '#8b5cf6',
+      [NotificationType.APPROVAL]: '#10b981',
+      [NotificationType.REJECTION]: '#ef4444',
+      [NotificationType.REMINDER]: '#f59e0b',
       [NotificationType.SYSTEM]: '#6b7280',
     };
     return map[type] || '#6b7280';

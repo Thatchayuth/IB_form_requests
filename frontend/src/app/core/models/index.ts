@@ -1,54 +1,54 @@
 /**
  * Enum & Interface รวมสำหรับระบบจัดการคำร้อง
- * สอดคล้องกับ Backend Entities ทั้งหมด
+ * ── สอดคล้องกับ Backend Entities ทุกค่า (PascalCase) ──
  */
 
-// ─── Enums ─────────────────────────────────────────────
+// ─── Enums (ค่าต้องตรงกับ Backend) ─────────────────────
 
 /** บทบาทผู้ใช้ */
 export enum UserRole {
-  USER = 'user',
-  ADMIN = 'admin',
+  USER = 'User',
+  ADMIN = 'Admin',
 }
 
 /** สถานะคำร้อง */
 export enum FormRequestStatus {
-  DRAFT = 'draft',
-  SUBMITTED = 'submitted',
-  UNDER_REVIEW = 'under_review',
-  APPROVED = 'approved',
-  REJECTED = 'rejected',
-  COMPLETED = 'completed',
-  CANCELLED = 'cancelled',
+  DRAFT = 'Draft',
+  SUBMITTED = 'Submitted',
+  UNDER_REVIEW = 'UnderReview',
+  APPROVED = 'Approved',
+  REJECTED = 'Rejected',
+  COMPLETED = 'Completed',
+  CANCELLED = 'Cancelled',
 }
 
 /** ระดับความสำคัญ */
 export enum Priority {
-  LOW = 'low',
-  MEDIUM = 'medium',
-  HIGH = 'high',
-  URGENT = 'urgent',
+  LOW = 'Low',
+  MEDIUM = 'Medium',
+  HIGH = 'High',
+  URGENT = 'Urgent',
 }
 
-/** ประเภทคำร้อง */
+/** ประเภทคำร้อง (ตรงกับ Backend RequestType) */
 export enum RequestType {
-  GENERAL = 'general',
-  IT_SUPPORT = 'it_support',
-  PROCUREMENT = 'procurement',
-  HR = 'hr',
-  FINANCE = 'finance',
-  MAINTENANCE = 'maintenance',
-  OTHER = 'other',
+  PURCHASE = 'Purchase',
+  VENDOR_REGISTRATION = 'VendorReg',
+  REPAIR = 'Repair',
+  IT_SUPPORT = 'ITSupport',
+  DOCUMENT = 'Document',
+  GENERAL = 'General',
+  OTHER = 'Other',
 }
 
 /** ประเภทการแจ้งเตือน */
 export enum NotificationType {
-  STATUS_CHANGE = 'status_change',
-  NEW_REQUEST = 'new_request',
-  APPROVED = 'approved',
-  REJECTED = 'rejected',
-  COMMENT = 'comment',
-  SYSTEM = 'system',
+  STATUS_CHANGE = 'StatusChange',
+  ASSIGNMENT = 'Assignment',
+  APPROVAL = 'Approval',
+  REJECTION = 'Rejection',
+  REMINDER = 'Reminder',
+  SYSTEM = 'System',
 }
 
 // ─── Interfaces ────────────────────────────────────────
@@ -124,29 +124,32 @@ export interface LoginRequest {
   password: string;
 }
 
-/** ผลลัพธ์จาก Login */
+/** ผลลัพธ์จาก Login (ตรงกับ Backend auth.service.ts) */
 export interface LoginResponse {
-  accessToken: string;
+  access_token: string;   // snake_case ตาม Backend
   user: User;
 }
 
 // ─── Pagination ────────────────────────────────────────
 
-/** ผลลัพธ์แบบแบ่งหน้า */
+/** ผลลัพธ์แบบแบ่งหน้า (ตรงกับ Backend PaginatedResult) */
 export interface PaginatedResult<T> {
   data: T[];
-  total: number;
-  page: number;
-  limit: number;
-  totalPages: number;
+  meta: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+    hasNextPage: boolean;
+    hasPreviousPage: boolean;
+  };
 }
 
 // ─── API Response ──────────────────────────────────────
 
 /** Wrapper response จาก Backend (TransformInterceptor) */
 export interface ApiResponse<T> {
-  statusCode: number;
-  message: string;
+  success: boolean;
   data: T;
   timestamp: string;
 }

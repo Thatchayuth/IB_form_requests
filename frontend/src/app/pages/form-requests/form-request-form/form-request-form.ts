@@ -64,11 +64,11 @@ export class FormRequestFormComponent implements OnInit {
   /** Dropdown options */
   typeOptions = [
     { label: 'ทั่วไป', value: RequestType.GENERAL },
+    { label: 'ขอซื้อ', value: RequestType.PURCHASE },
+    { label: 'เปิด Vendor ใหม่', value: RequestType.VENDOR_REGISTRATION },
+    { label: 'แจ้งซ่อม', value: RequestType.REPAIR },
     { label: 'IT Support', value: RequestType.IT_SUPPORT },
-    { label: 'จัดซื้อจัดจ้าง', value: RequestType.PROCUREMENT },
-    { label: 'ทรัพยากรบุคคล', value: RequestType.HR },
-    { label: 'การเงิน', value: RequestType.FINANCE },
-    { label: 'ซ่อมบำรุง', value: RequestType.MAINTENANCE },
+    { label: 'ขอเอกสาร', value: RequestType.DOCUMENT },
     { label: 'อื่น ๆ', value: RequestType.OTHER },
   ];
 

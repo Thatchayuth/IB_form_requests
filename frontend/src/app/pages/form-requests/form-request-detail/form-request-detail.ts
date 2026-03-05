@@ -65,30 +65,30 @@ export class FormRequestDetailComponent implements OnInit {
 
   /** Status Labels (Thai) */
   statusLabels: Record<string, string> = {
-    draft: 'ร่าง',
-    submitted: 'ส่งแล้ว',
-    under_review: 'กำลังตรวจสอบ',
-    approved: 'อนุมัติ',
-    rejected: 'ปฏิเสธ',
-    completed: 'เสร็จสิ้น',
-    cancelled: 'ยกเลิก',
+    Draft: 'ร่าง',
+    Submitted: 'ส่งแล้ว',
+    UnderReview: 'กำลังตรวจสอบ',
+    Approved: 'อนุมัติ',
+    Rejected: 'ปฏิเสธ',
+    Completed: 'เสร็จสิ้น',
+    Cancelled: 'ยกเลิก',
   };
 
   priorityLabels: Record<string, string> = {
-    low: 'ต่ำ',
-    medium: 'ปานกลาง',
-    high: 'สูง',
-    urgent: 'เร่งด่วน',
+    Low: 'ต่ำ',
+    Medium: 'ปานกลาง',
+    High: 'สูง',
+    Urgent: 'เร่งด่วน',
   };
 
   typeLabels: Record<string, string> = {
-    general: 'ทั่วไป',
-    it_support: 'IT Support',
-    procurement: 'จัดซื้อจัดจ้าง',
-    hr: 'ทรัพยากรบุคคล',
-    finance: 'การเงิน',
-    maintenance: 'ซ่อมบำรุง',
-    other: 'อื่น ๆ',
+    General: 'ทั่วไป',
+    Purchase: 'ขอซื้อ',
+    VendorReg: 'เปิด Vendor ใหม่',
+    Repair: 'แจ้งซ่อม',
+    ITSupport: 'IT Support',
+    Document: 'ขอเอกสาร',
+    Other: 'อื่น ๆ',
   };
 
   constructor(
@@ -226,23 +226,23 @@ export class FormRequestDetailComponent implements OnInit {
   /** ดึง severity สำหรับ PrimeNG Tag */
   getStatusSeverity(status: string): 'success' | 'info' | 'warn' | 'danger' | 'secondary' | 'contrast' {
     const map: Record<string, 'success' | 'info' | 'warn' | 'danger' | 'secondary' | 'contrast'> = {
-      draft: 'secondary',
-      submitted: 'info',
-      under_review: 'warn',
-      approved: 'success',
-      rejected: 'danger',
-      completed: 'info',
-      cancelled: 'secondary',
+      Draft: 'secondary',
+      Submitted: 'info',
+      UnderReview: 'warn',
+      Approved: 'success',
+      Rejected: 'danger',
+      Completed: 'info',
+      Cancelled: 'secondary',
     };
     return map[status] || 'info';
   }
 
   getPrioritySeverity(priority: string): 'success' | 'info' | 'warn' | 'danger' | 'secondary' | 'contrast' {
     const map: Record<string, 'success' | 'info' | 'warn' | 'danger' | 'secondary' | 'contrast'> = {
-      low: 'success',
-      medium: 'warn',
-      high: 'danger',
-      urgent: 'danger',
+      Low: 'success',
+      Medium: 'warn',
+      High: 'danger',
+      Urgent: 'danger',
     };
     return map[priority] || 'info';
   }

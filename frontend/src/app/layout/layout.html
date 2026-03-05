@@ -82,7 +82,7 @@
         <!-- ข้อมูลผู้ใช้ -->
         <div class="flex flex-col items-end mx-2">
           <span class="text-sm font-semibold text-slate-800">{{ auth.currentUser()?.fullName }}</span>
-          <span class="text-xs text-slate-500 uppercase">{{ auth.currentUser()?.role === 'admin' ? 'ผู้ดูแลระบบ' : 'ผู้ใช้งาน' }}</span>
+          <span class="text-xs text-slate-500 uppercase">{{ auth.isAdmin() ? 'ผู้ดูแลระบบ' : 'ผู้ใช้งาน' }}</span>
         </div>
 
         <button

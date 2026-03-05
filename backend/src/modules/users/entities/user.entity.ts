@@ -32,7 +32,7 @@ export class User {
   username: string;
 
   @ApiProperty({ description: 'รหัสพนักงาน (กรอกเองภายหลัง)', example: 'EMP001', required: false })
-  @Column({ type: 'nvarchar', length: 50, unique: true, nullable: true })
+  @Column({ type: 'nvarchar', length: 50, nullable: true })
   employeeId: string;
 
   @ApiProperty({ description: 'ชื่อ-นามสกุล (จาก AD displayName)', example: 'Thatchayuth Tochay' })
@@ -40,7 +40,7 @@ export class User {
   fullName: string;
 
   @ApiProperty({ description: 'อีเมล (จาก AD)', example: 'thatchayuth@ncr-rubber.com' })
-  @Column({ type: 'nvarchar', length: 200, unique: true, nullable: true })
+  @Column({ type: 'nvarchar', length: 200, nullable: true })
   email: string;
 
   @Exclude() // ซ่อน password hash จาก response (ไม่ใช้สำหรับ AD Login)
