@@ -335,31 +335,61 @@ export class FormRequestsService {
   // สถิติคำร้อง (Dashboard)
   // =============================================
   /**
-   * นับจำนวนคำร้องแยกตามสถานะ
+   * นับจำนวนคำร้องแยกตาม status, priority, type
    * Admin เห็นทั้งหมด, User เห็นเฉพาะของตัวเอง
    */
-  async getStats(user: User): Promise<Record<string, number>> {
-    const qb = this.formRequestRepository.createQueryBuilder('fr');
+  async getStats(user: User): Promise<{
+    total: number;
+    byStatus: Record<string, number>;
+    byPriority: Record<string, number>;
+    byType: Record<string, number>;
+  }> {
+    const baseQb = () => {
+      const qb = this.formRequestRepository.createQueryBuilder('fr');
+      if (user.role !== UserRole.ADMIN) {
+        qb.andWhere('fr.requesterId = :userId', { userId: user.id });
+      }
+      return qb;
+    };
 
-    // User เห็นเฉพาะของตัวเอง
-    if (user.role !== UserRole.ADMIN) {
-      qb.andWhere('fr.requesterId = :userId', { userId: user.id });
-    }
-
-    const result = await qb
-      .select('fr.status', 'status')
+    // นับตาม status
+    const statusResult = await baseQb()
+      .select('fr.status', 'key')
       .addSelect('COUNT(*)', 'count')
       .groupBy('fr.status')
       .getRawMany();
 
-    // แปลงเป็น object: { Draft: 5, Submitted: 3, ... }
-    const stats: Record<string, number> = { total: 0 };
-    for (const row of result) {
-      stats[row.status] = parseInt(row.count, 10);
-      stats.total += parseInt(row.count, 10);
-    }
+    // นับตาม priority
+    const priorityResult = await baseQb()
+      .select('fr.priority', 'key')
+      .addSelect('COUNT(*)', 'count')
+      .groupBy('fr.priority')
+      .getRawMany();
 
-    return stats;
+    // นับตาม requestType
+    const typeResult = await baseQb()
+      .select('fr.requestType', 'key')
+      .addSelect('COUNT(*)', 'count')
+      .groupBy('fr.requestType')
+      .getRawMany();
+
+    const toRecord = (rows: { key: string; count: string }[]) => {
+      const rec: Record<string, number> = {};
+      for (const row of rows) {
+        rec[row.key] = parseInt(row.count, 10);
+      }
+      return rec;
+    };
+
+    const byStatus = toRecord(statusResult);
+    const total = Object.values(byStatus).reduce((a, b) => a + b, 0);
+
+    return {
+      total,
+      byStatus,
+      byPriority: toRecord(priorityResult),
+      byType: toRecord(typeResult),
+    };
   }
 
   // =============================================

@@ -1,65 +1,81 @@
-<!-- Login Page — หน้าเข้าสู่ระบบ (Tailwind + Kanit) -->
-<div class="flex items-center justify-center min-h-screen bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 p-4">
-  <div class="w-full max-w-md bg-white rounded-2xl shadow-2xl p-10">
-    <!-- Header -->
-    <div class="text-center mb-8">
-      <i class="pi pi-inbox text-5xl text-indigo-500 mb-3 block"></i>
-      <h1 class="text-2xl font-bold text-slate-800">ระบบจัดการคำร้อง</h1>
-      <p class="text-slate-500 text-sm mt-1">Form Request Management System</p>
-    </div>
+<!-- Login Page — หน้าเข้าสู่ระบบ (โทนสีโรงงาน: น้ำเงินเข้ม-เทา-เหลืองเตือน) -->
+<div class="relative flex items-center justify-center min-h-screen overflow-hidden bg-slate-800 p-4">
 
-    <!-- Error Message -->
-    @if (errorMessage) {
-      <p-message severity="error" [text]="errorMessage" styleClass="mb-4 w-full" />
-    }
+  <!-- พื้นหลัง: gradient สไตล์ industrial -->
+  <div class="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-blue-900"></div>
+  <!-- ลายตาราง subtle -->
+  <div class="absolute inset-0 opacity-5"
+       style="background-image: repeating-linear-gradient(0deg, transparent, transparent 40px, rgba(255,255,255,.1) 40px, rgba(255,255,255,.1) 41px),
+              repeating-linear-gradient(90deg, transparent, transparent 40px, rgba(255,255,255,.1) 40px, rgba(255,255,255,.1) 41px);">
+  </div>
 
-    <!-- Login Form -->
-    <form (ngSubmit)="onLogin()" class="space-y-5">
-      <div>
-        <label for="username" class="block mb-2 text-sm font-semibold text-slate-600">
-          <i class="pi pi-user mr-1"></i> ชื่อผู้ใช้ (AD Username)
-        </label>
-        <input
-          pInputText
-          id="username"
-          [(ngModel)]="username"
-          name="username"
-          placeholder="กรอก AD Username"
-          class="w-full"
-          [disabled]="loading"
-          autocomplete="username"
-        />
+  <!-- Login Card -->
+  <div class="relative z-10 w-full max-w-md">
+    <!-- แถบสีเหลืองด้านบน (สไตล์ป้ายโรงงาน) -->
+    <div class="h-2 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-400 rounded-t-2xl"></div>
+
+    <div class="bg-white rounded-b-2xl shadow-2xl p-10">
+      <!-- Header with Logo -->
+      <div class="text-center mb-8">
+        <img src="logo.png" alt="JNTCRZ Logo" class="h-14 mx-auto mb-4" />
+        <h1 class="text-2xl font-bold text-slate-800">ระบบจัดการคำร้อง</h1>
+        <p class="text-slate-500 text-sm mt-1">Form Request Management System</p>
       </div>
 
-      <div>
-        <label for="password" class="block mb-2 text-sm font-semibold text-slate-600">
-          <i class="pi pi-lock mr-1"></i> รหัสผ่าน
-        </label>
-        <p-password
-          id="password"
-          [(ngModel)]="password"
-          name="password"
-          placeholder="กรอกรหัสผ่าน"
-          [feedback]="false"
-          [toggleMask]="true"
+      <!-- Error Message -->
+      @if (errorMessage) {
+        <p-message severity="error" [text]="errorMessage" styleClass="mb-4 w-full" />
+      }
+
+      <!-- Login Form -->
+      <form (ngSubmit)="onLogin()" class="space-y-5">
+        <div>
+          <label for="username" class="block mb-2 text-sm font-semibold text-slate-600">
+            <i class="pi pi-user mr-1 text-blue-800"></i> ชื่อผู้ใช้ (AD Username)
+          </label>
+          <input
+            pInputText
+            id="username"
+            [(ngModel)]="username"
+            name="username"
+            placeholder="กรอก AD Username"
+            class="w-full"
+            [disabled]="loading"
+            autocomplete="username"
+          />
+        </div>
+
+        <div>
+          <label for="password" class="block mb-2 text-sm font-semibold text-slate-600">
+            <i class="pi pi-lock mr-1 text-blue-800"></i> รหัสผ่าน
+          </label>
+          <p-password
+            id="password"
+            [(ngModel)]="password"
+            name="password"
+            placeholder="กรอกรหัสผ่าน"
+            [feedback]="false"
+            [toggleMask]="true"
+            styleClass="w-full"
+            inputStyleClass="w-full"
+            [disabled]="loading"
+            autocomplete="current-password"
+          />
+        </div>
+
+        <p-button
+          type="submit"
+          label="เข้าสู่ระบบ"
+          icon="pi pi-sign-in"
           styleClass="w-full"
-          inputStyleClass="w-full"
-          [disabled]="loading"
-          autocomplete="current-password"
+          [loading]="loading"
         />
+      </form>
+
+      <div class="text-center mt-6 text-slate-400 text-xs">
+        <i class="pi pi-shield mr-1"></i>
+        <small>เข้าสู่ระบบด้วยบัญชี Active Directory ของคุณ</small>
       </div>
-
-      <p-button
-        type="submit"
-        label="เข้าสู่ระบบ"
-        icon="pi pi-sign-in"
-        styleClass="w-full"
-        [loading]="loading"
-      />
-    </form>
-
-    <div class="text-center mt-6 text-slate-400 text-xs">
-      <small>เข้าสู่ระบบด้วยบัญชี Active Directory ของคุณ</small>
     </div>
   </div>
 </div>

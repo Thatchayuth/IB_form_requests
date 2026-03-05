@@ -55,15 +55,35 @@ export class AuthService {
   /**
    * Login ผ่าน Active Directory
    * เรียก AD API ด้วย Basic Auth แล้ว upsert user ในระบบ
+   *
+   * สำหรับ development: ถ้าเชื่อมต่อ AD ไม่ได้ จะ fallback ใช้ local user (ถ้ามีในระบบ)
    */
   async login(adLoginDto: AdLoginDto): Promise<{ access_token: string; user: Partial<User> }> {
     const { username, password } = adLoginDto;
+    const isDev = this.configService.get<string>('APP_ENV', 'development') === 'development';
 
-    // ขั้นตอนที่ 1: เรียก AD API ตรวจสอบ username/password
-    const adUser = await this.authenticateWithAD(username, password);
+    let user: User;
 
-    // ขั้นตอนที่ 2: Insert หรือ Update user ในตาราง Users
-    const user = await this.upsertUser(adUser);
+    try {
+      // ขั้นตอนที่ 1: เรียก AD API ตรวจสอบ username/password
+      const adUser = await this.authenticateWithAD(username, password);
+
+      // ขั้นตอนที่ 2: Insert หรือ Update user ในตาราง Users
+      user = await this.upsertUser(adUser);
+    } catch (error) {
+      // Fallback สำหรับ dev: ถ้า AD ไม่พร้อมใช้ → ใช้ local user
+      if (isDev && error instanceof InternalServerErrorException) {
+        this.logger.warn(`[DEV MODE] AD ไม่พร้อมใช้งาน — ใช้ local login สำหรับ ${username}`);
+
+        const localUser = await this.userRepository.findOne({ where: { username } });
+        if (!localUser) {
+          throw new UnauthorizedException('ไม่พบผู้ใช้ในระบบ (dev mode: AD ไม่สามารถเชื่อมต่อได้)');
+        }
+        user = localUser;
+      } else {
+        throw error; // re-throw ถ้าไม่ใช่ dev หรือเป็น UnauthorizedException
+      }
+    }
 
     // ขั้นตอนที่ 3: ตรวจสอบว่า user ยัง active อยู่
     if (!user.isActive) {

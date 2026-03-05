@@ -17,8 +17,13 @@ import { TransformInterceptor } from './common/interceptors/transform.intercepto
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  // ตั้งค่า Security Headers
-  app.use(helmet());
+  // ตั้งค่า Security Headers (ปิด HSTS สำหรับ dev — ไม่บังคับ HTTPS)
+  app.use(
+    helmet({
+      hsts: false,
+      contentSecurityPolicy: false, // ปิด CSP เพื่อให้ Swagger UI โหลดได้
+    }),
+  );
 
   // ตั้งค่า CORS - อนุญาตให้ Frontend เรียก API ได้
   // อ่านค่าจาก CORS_ORIGIN ใน .env รองรับหลาย origin คั่นด้วย ,
@@ -78,10 +83,23 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, swaggerConfig);
   SwaggerModule.setup('api/docs', app, document);
 
-  // เริ่ม server
+  // เริ่ม server — listen บน 0.0.0.0 เพื่อให้เข้าถึงจาก IP ได้
   const port = process.env.APP_PORT || 3000;
-  await app.listen(port);
-  console.log(`🚀 แอปพลิเคชันทำงานที่: http://localhost:${port}`);
+  await app.listen(port, '0.0.0.0');
+
+  // แสดง IP จริงของเครื่อง
+  const os = await import('os');
+  const nets = os.networkInterfaces();
+  const ips = Object.values(nets)
+    .flat()
+    .filter((i) => i && i.family === 'IPv4' && !i.internal)
+    .map((i) => i!.address);
+
+  console.log(`🚀 แอปพลิเคชันทำงานที่:`);
+  console.log(`   Local:   http://localhost:${port}`);
+  for (const ip of ips) {
+    console.log(`   Network: http://${ip}:${port}`);
+  }
   console.log(`📄 Swagger API Docs: http://localhost:${port}/api/docs`);
 }
 
