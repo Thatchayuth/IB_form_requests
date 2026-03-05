@@ -38,18 +38,46 @@ import { MessageService } from 'primeng/api';
   styleUrl: './layout.scss',
 })
 export class LayoutComponent {
-  /** เปิด/ปิด Sidebar */
+  /** เปิด/ปิด Sidebar (desktop) */
   sidebarCollapsed = false;
+  /** เปิด Sidebar บน mobile (overlay) */
+  mobileOpen = false;
+
+  private isMobile = false;
 
   constructor(
     public auth: AuthService,
     private router: Router,
     private messageService: MessageService,
-  ) {}
+  ) {
+    // ซ่อน sidebar อัตโนมัติบนจอเล็ก
+    this.checkMobile();
+    if (typeof window !== 'undefined') {
+      window.addEventListener('resize', () => this.checkMobile());
+    }
+  }
 
-  /** Toggle Sidebar */
+  private checkMobile(): void {
+    if (typeof window === 'undefined') return;
+    this.isMobile = window.innerWidth < 768;
+    if (this.isMobile) {
+      this.sidebarCollapsed = true;
+      this.mobileOpen = false;
+    }
+  }
+
+  /** Toggle Sidebar — desktop: collapse/expand, mobile: overlay */
   toggleSidebar(): void {
-    this.sidebarCollapsed = !this.sidebarCollapsed;
+    if (this.isMobile) {
+      this.mobileOpen = !this.mobileOpen;
+    } else {
+      this.sidebarCollapsed = !this.sidebarCollapsed;
+    }
+  }
+
+  /** ปิด sidebar บน mobile */
+  closeMobile(): void {
+    this.mobileOpen = false;
   }
 
   /** เมนูหลักสำหรับ User */

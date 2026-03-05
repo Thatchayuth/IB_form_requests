@@ -1,13 +1,20 @@
 /* ─── Layout Styles — Tailwind ใช้ใน template แล้ว ─── */
-/* เฉพาะ responsive override สำหรับ mobile */
 
+/* Mobile: sidebar เป็น overlay ไม่ดัน content */
 @media (max-width: 768px) {
-  /* บน mobile sidebar collapse อัตโนมัติ */
   aside {
-    width: 64px !important;
+    /* ซ่อน sidebar ออกไปทางซ้าย */
+    transform: translateX(-100%);
+    width: 256px !important; /* w-64 */
   }
 
-  .ml-64 {
-    margin-left: 64px !important;
+  aside.mobile-open {
+    transform: translateX(0);
+  }
+
+  /* main content ไม่ต้องเว้น margin */
+  .ml-64,
+  .ml-16 {
+    margin-left: 0 !important;
   }
 }
