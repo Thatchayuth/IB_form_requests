@@ -13,17 +13,20 @@ import { UpdateFormRequestDto } from './dto/update-form-request.dto';
 import { UpdateStatusDto } from './dto/update-status.dto';
 import { QueryFormRequestDto } from './dto/query-form-request.dto';
 import { PaginatedResult } from '../../common/dto/pagination.dto';
-import { FormRequestStatus, UserRole } from '../../common/enums';
+import { FormRequestStatus, UserRole, NotificationType } from '../../common/enums';
 import { User } from '../users/entities/user.entity';
+import { NotificationsService } from '../notifications/notifications.service';
+import { UsersService } from '../users/users.service';
 
 /**
  * Form Requests Service
- * จัดการคำร้อง — CRUD + เปลี่ยนสถานะ
+ * จัดการคำร้อง — CRUD + เปลี่ยนสถานะ + แจ้งเตือนอัตโนมัติ
  *
  * Business Rules:
  * - User: สร้าง, แก้ไข (เฉพาะ Draft), ส่ง, ยกเลิก (เฉพาะของตัวเอง)
  * - Admin: ดูทั้งหมด, เปลี่ยนสถานะ (อนุมัติ/ปฏิเสธ/อื่นๆ)
  * - เลขที่คำร้อง: FR-YYYY-NNNN (Auto Generate)
+ * - แจ้งเตือนอัตโนมัติเมื่อส่งคำร้อง / เปลี่ยนสถานะ
  */
 @Injectable()
 export class FormRequestsService {
@@ -32,6 +35,8 @@ export class FormRequestsService {
   constructor(
     @InjectRepository(FormRequest)
     private readonly formRequestRepository: Repository<FormRequest>,
+    private readonly notificationsService: NotificationsService,
+    private readonly usersService: UsersService,
   ) {}
 
   // =============================================
@@ -230,6 +235,14 @@ export class FormRequestsService {
     const updated = await this.formRequestRepository.save(formRequest) as FormRequest;
     this.logger.log(`ส่งคำร้อง ${formRequest.requestNumber} โดย ${user.username}`);
 
+    // แจ้งเตือน Admin ทุกคน — มีคำร้องใหม่รอตรวจสอบ
+    await this.notifyAdmins(
+      formRequest,
+      'คำร้องใหม่รอตรวจสอบ',
+      `${user.fullName} ส่งคำร้อง ${formRequest.requestNumber}: ${formRequest.title}`,
+      NotificationType.ASSIGNMENT,
+    );
+
     return updated;
   }
 
@@ -306,10 +319,14 @@ export class FormRequestsService {
       formRequest.approvedAt = new Date();
     }
 
+    const oldStatus = formRequest.status;
     const updated = await this.formRequestRepository.save(formRequest) as FormRequest;
     this.logger.log(
-      `Admin ${admin.username} เปลี่ยนสถานะคำร้อง ${formRequest.requestNumber}: ${formRequest.status} → ${dto.status}`,
+      `Admin ${admin.username} เปลี่ยนสถานะคำร้อง ${formRequest.requestNumber}: ${oldStatus} → ${dto.status}`,
     );
+
+    // แจ้งเตือนเจ้าของคำร้อง — สถานะเปลี่ยนแล้ว
+    await this.notifyRequester(formRequest, dto.status, admin);
 
     return updated;
   }
@@ -411,6 +428,93 @@ export class FormRequestsService {
       throw new BadRequestException(
         `ไม่สามารถเปลี่ยนสถานะจาก "${currentStatus}" เป็น "${newStatus}" ได้`,
       );
+    }
+  }
+
+  // =============================================
+  // Private: แจ้งเตือน Admin ทุกคน (เมื่อมีคำร้องใหม่)
+  // =============================================
+  /**
+   * ส่งแจ้งเตือนให้ Admin ทุกคน
+   * ใช้ตอน: User ส่งคำร้อง → Admin ทุกคนรับแจ้งเตือน
+   */
+  private async notifyAdmins(
+    formRequest: FormRequest,
+    title: string,
+    message: string,
+    type: NotificationType,
+  ): Promise<void> {
+    try {
+      // ดึง Admin ทุกคนจาก PaginatedResult
+      const adminResult = await this.usersService.findAll({
+        page: 1,
+        limit: 100,
+        search: undefined,
+        sortBy: 'createdAt',
+        sortOrder: 'DESC',
+      });
+
+      // กรองเฉพาะ Admin ที่ active
+      const admins = adminResult.data.filter(
+        (u) => u.role === UserRole.ADMIN && u.isActive,
+      );
+
+      if (admins.length === 0) return;
+
+      const payloads = admins.map((admin) => ({
+        userId: admin.id,
+        formRequestId: formRequest.id,
+        title,
+        message,
+        type,
+      }));
+
+      await this.notificationsService.createMany(payloads);
+    } catch (error) {
+      // แจ้งเตือนล้มเหลว → log แต่ไม่ throw (ไม่ให้กระทบ main flow)
+      this.logger.error('ส่งแจ้งเตือน Admin ล้มเหลว', error);
+    }
+  }
+
+  // =============================================
+  // Private: แจ้งเตือนเจ้าของคำร้อง (เมื่อ Admin เปลี่ยนสถานะ)
+  // =============================================
+  /**
+   * ส่งแจ้งเตือนเจ้าของคำร้องเมื่อ Admin เปลี่ยนสถานะ
+   */
+  private async notifyRequester(
+    formRequest: FormRequest,
+    newStatus: FormRequestStatus,
+    admin: User,
+  ): Promise<void> {
+    try {
+      // แปลงสถานะเป็นข้อความภาษาไทย
+      const statusText: Record<string, string> = {
+        [FormRequestStatus.UNDER_REVIEW]: 'กำลังตรวจสอบ',
+        [FormRequestStatus.APPROVED]: 'อนุมัติแล้ว',
+        [FormRequestStatus.REJECTED]: 'ถูกปฏิเสธ',
+        [FormRequestStatus.COMPLETED]: 'เสร็จสิ้น',
+        [FormRequestStatus.CANCELLED]: 'ถูกยกเลิก',
+      };
+
+      // เลือกประเภทแจ้งเตือนตามสถานะ
+      const typeMap: Record<string, NotificationType> = {
+        [FormRequestStatus.APPROVED]: NotificationType.APPROVAL,
+        [FormRequestStatus.REJECTED]: NotificationType.REJECTION,
+      };
+
+      const text = statusText[newStatus] || newStatus;
+      const notifType = typeMap[newStatus] || NotificationType.STATUS_CHANGE;
+
+      await this.notificationsService.create({
+        userId: formRequest.requesterId,
+        formRequestId: formRequest.id,
+        title: `คำร้อง ${formRequest.requestNumber} ${text}`,
+        message: `คำร้อง "${formRequest.title}" ได้เปลี่ยนสถานะเป็น "${text}" โดย ${admin.fullName}`,
+        type: notifType,
+      });
+    } catch (error) {
+      this.logger.error('ส่งแจ้งเตือนเจ้าของคำร้องล้มเหลว', error);
     }
   }
 }

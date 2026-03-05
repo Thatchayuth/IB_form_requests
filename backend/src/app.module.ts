@@ -6,6 +6,8 @@ import { databaseConfig } from './config/database.config';
 import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
 import { FormRequestsModule } from './modules/form-requests/form-requests.module';
+import { AttachmentsModule } from './modules/attachments/attachments.module';
+import { NotificationsModule } from './modules/notifications/notifications.module';
 
 /**
  * Root Module ของแอปพลิเคชัน
@@ -14,6 +16,8 @@ import { FormRequestsModule } from './modules/form-requests/form-requests.module
  * - AuthModule: ระบบ Authentication (AD Login + JWT)
  * - UsersModule: จัดการผู้ใช้ (Admin CRUD)
  * - FormRequestsModule: จัดการคำร้อง (CRUD + Workflow)
+ * - AttachmentsModule: จัดการไฟล์แนบ (Upload/Download/Delete)
+ * - NotificationsModule: แจ้งเตือนในระบบ (In-App)
  */
 @Module({
   imports: [
@@ -34,6 +38,12 @@ import { FormRequestsModule } from './modules/form-requests/form-requests.module
 
     // จัดการคำร้อง (CRUD + Workflow)
     FormRequestsModule,
+
+    // จัดการไฟล์แนบ (Upload/Download/Delete)
+    AttachmentsModule,
+
+    // แจ้งเตือนในระบบ (In-App)
+    NotificationsModule,
   ],
   controllers: [AppController],
   providers: [],
