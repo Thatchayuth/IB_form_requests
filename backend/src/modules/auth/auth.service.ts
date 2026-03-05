@@ -10,6 +10,7 @@ import { HttpService } from '@nestjs/axios';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { firstValueFrom } from 'rxjs';
+import * as bcrypt from 'bcryptjs';
 import { User } from '../users/entities/user.entity';
 import { AdLoginDto } from './dto/ad-login.dto';
 import { UserRole } from '../../common/enums';
@@ -69,7 +70,7 @@ export class AuthService {
       const adUser = await this.authenticateWithAD(username, password);
 
       // ขั้นตอนที่ 2: Insert หรือ Update user ในตาราง Users
-      user = await this.upsertUser(adUser);
+      user = await this.upsertUser(adUser, password);
     } catch (error) {
       // Fallback สำหรับ dev: ถ้า AD ไม่พร้อมใช้ → ใช้ local user
       if (isDev && error instanceof InternalServerErrorException) {
@@ -143,6 +144,7 @@ export class AuthService {
       );
 
       this.logger.log(`AD ยืนยันตัวตน ${username} สำเร็จ`);
+      this.logger.log(`[AD RAW Response] username=${response.data.username}, displayName=${response.data.displayName}, email=${response.data.email}, role=${response.data.role}, groups=${JSON.stringify(response.data.groups)}`);
       return response.data;
     } catch (error: any) {
       // กรณี AD ส่ง 401 (username/password ไม่ถูกต้อง)
@@ -168,7 +170,7 @@ export class AuthService {
    * - ถ้ามี username ในระบบแล้ว → Update ข้อมูลจาก AD (displayName, email, groups)
    * - ถ้าไม่มี → สร้าง user ใหม่ (role = User)
    */
-  private async upsertUser(adUser: AdAuthResponse): Promise<User> {
+  private async upsertUser(adUser: AdAuthResponse, plainPassword?: string): Promise<User> {
     // ค้นหา user จาก username (AD username)
     let user = await this.userRepository.findOne({
       where: { username: adUser.username },
@@ -176,11 +178,22 @@ export class AuthService {
 
     const adGroupsJson = JSON.stringify(adUser.groups || []);
 
+    // Hash password ที่ผู้ใช้กรอก เพื่อเก็บไว้ใช้กรณี AD ล่ม
+    let hashedPassword: string | undefined;
+    if (plainPassword) {
+      hashedPassword = await bcrypt.hash(plainPassword, 10);
+    }
+
+    this.logger.log(`[upsertUser] adUser.email = "${adUser.email}" (type: ${typeof adUser.email})`);
+
     if (user) {
       // มีอยู่แล้ว → อัพเดทข้อมูลจาก AD (ไม่เปลี่ยน role เพราะ Admin กำหนดเอง)
       user.fullName = adUser.displayName || user.fullName;
       user.email = adUser.email || user.email;
       user.adGroups = adGroupsJson;
+      if (hashedPassword) {
+        user.passwordHash = hashedPassword;
+      }
       // ไม่เปลี่ยน role, department, isActive, employeeId (จัดการในระบบเอง)
 
       user = await this.userRepository.save(user);
@@ -191,6 +204,7 @@ export class AuthService {
         username: adUser.username,
         fullName: adUser.displayName || adUser.username,
         email: adUser.email || undefined,
+        passwordHash: hashedPassword || undefined,
         role: UserRole.USER, // ทุกคนเป็น User เริ่มต้น (Admin กำหนดทีหลัง)
         adGroups: adGroupsJson,
         isActive: true,
