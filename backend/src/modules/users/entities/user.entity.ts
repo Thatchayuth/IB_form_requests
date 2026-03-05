@@ -71,6 +71,16 @@ export class User {
   @Column({ type: 'datetime2', nullable: true })
   lastLoginAt: Date;
 
+  @Exclude()
+  @Column({ type: 'nvarchar', length: 100, nullable: true })
+  sessionToken: string | null;
+
+  @Column({ type: 'nvarchar', length: 500, nullable: true })
+  lastLoginDevice: string | null;
+
+  @Column({ type: 'nvarchar', length: 50, nullable: true })
+  lastLoginIp: string | null;
+
   @ApiProperty({ description: 'วันที่สร้าง' })
   @CreateDateColumn({ type: 'datetime2' })
   createdAt: Date;

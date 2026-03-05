@@ -2,68 +2,62 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { User } from '../../users/entities/user.entity';
+import { AuthService } from '../auth.service';
 
 /**
  * JWT Payload Interface
  * ข้อมูลที่เก็บใน JWT token (สร้างตอน login สำเร็จ)
  */
 export interface JwtPayload {
-  sub: number;        // user id
-  username: string;   // AD username
+  sub: number;
+  username: string;
   email: string;
   role: string;
+  sessionToken?: string;
 }
 
 /**
  * Passport JWT Strategy
  * ทำงานร่วมกับ JwtAuthGuard เพื่อตรวจสอบ JWT token
- *
- * การทำงาน:
- * 1. ดึง JWT จาก Authorization: Bearer <token>
- * 2. ตรวจสอบ token ด้วย secret key
- * 3. ดึง user จาก DB ด้วย id ที่อยู่ใน payload
- * 4. ถ้า user ไม่พบหรือไม่ active → ส่ง 401 Unauthorized
- * 5. ถ้าสำเร็จ → ใส่ข้อมูล user ลงใน req.user
+ * + ตรวจ session token ว่ายังตรงกับ DB (ป้องกัน force logout ข้ามเครื่อง)
  */
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(
     configService: ConfigService,
-    @InjectRepository(User)
-    private readonly userRepository: Repository<User>,
+    private readonly authService: AuthService,
   ) {
     super({
-      // ดึง JWT จาก header Authorization: Bearer <token>
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-      // ไม่อนุญาต token หมดอายุ
       ignoreExpiration: false,
-      // secret key สำหรับตรวจสอบ token
       secretOrKey: configService.get<string>('JWT_SECRET', 'default-secret'),
     });
   }
 
   /**
    * Validate JWT Payload
-   * ถูกเรียกหลังจาก token ผ่านการตรวจสอบแล้ว
-   * ค่าที่ return จะถูกใส่ลงใน req.user
+   * - ตรวจว่า user ยังอยู่ + active
+   * - ตรวจว่า sessionToken ยังตรงกัน (ไม่ถูก force logout)
    */
-  async validate(payload: JwtPayload): Promise<User> {
-    const user = await this.userRepository.findOne({
-      where: { id: payload.sub },
-    });
-
-    // ตรวจสอบว่า user ยังมีอยู่และ active
-    if (!user) {
-      throw new UnauthorizedException('ไม่พบผู้ใช้ หรือ token ไม่ถูกต้อง');
+  async validate(payload: JwtPayload): Promise<JwtPayload> {
+    if (!payload.sub) {
+      throw new UnauthorizedException('Token ไม่ถูกต้อง');
     }
 
-    if (!user.isActive) {
-      throw new UnauthorizedException('บัญชีผู้ใช้ถูกปิดการใช้งาน');
+    // ─── ตรวจ session token ───────────────────────────────
+    if (payload.sessionToken) {
+      const user = await this.authService.validateSession(
+        payload.sub,
+        payload.sessionToken,
+      );
+
+      if (!user) {
+        throw new UnauthorizedException(
+          'Session หมดอายุ — มีการเข้าสู่ระบบจากอุปกรณ์อื่น กรุณาเข้าสู่ระบบใหม่',
+        );
+      }
     }
 
-    return user;
+    return payload;
   }
 }

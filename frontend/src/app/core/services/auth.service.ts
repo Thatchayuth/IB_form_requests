@@ -1,5 +1,5 @@
 import { Injectable, signal, computed, OnDestroy } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { Observable, tap, catchError, throwError } from 'rxjs';
 import { environment } from '../../../environments/environment';
@@ -10,10 +10,17 @@ const TOKEN_KEY = 'access_token';
 const USER_KEY = 'current_user';
 const SYNC_KEY = 'ib_auth_sync'; // สำหรับ sync ข้าม tab
 
+/** ข้อมูล Active Session Conflict (409) */
+export interface SessionConflictInfo {
+  device: string;
+  ip: string;
+  time: string;
+}
+
 /**
  * AuthService — จัดการ Authentication (AD Login)
  * เก็บ token ใน localStorage, ใช้ Signals สำหรับ state management
- * รองรับ Cross-Tab Sync: login/logout จาก tab หนึ่ง → sync ไปทุก tab อัตโนมัติ
+ * รองรับ Cross-Tab Sync + Cross-Browser Session Detection
  */
 @Injectable({ providedIn: 'root' })
 export class AuthService implements OnDestroy {
@@ -32,6 +39,9 @@ export class AuthService implements OnDestroy {
   displayName = computed(
     () => this.currentUser()?.fullName || this.currentUser()?.username || '',
   );
+
+  // ─── เก็บ credentials ชั่วคราวสำหรับ force login ───────
+  private pendingCredentials: LoginRequest | null = null;
 
   // ─── Storage event listener reference ──────────────────
   private storageListener: ((e: StorageEvent) => void) | null = null;
@@ -105,23 +115,67 @@ export class AuthService implements OnDestroy {
   }
 
   // ═══════════════════════════════════════════════════════
-  //  Login / Logout / Profile
+  //  Login / Logout / Force Login / Profile
   // ═══════════════════════════════════════════════════════
 
   /**
    * เข้าสู่ระบบผ่าน AD
-   * ส่ง username/password ไป Backend → Backend ยิง AD API → ได้ JWT กลับมา
+   * ถ้า Backend ตอบ 409 = มี session อยู่แล้ว → throw error พร้อมข้อมูล session เดิม
    */
   login(credentials: LoginRequest): Observable<ApiResponse<LoginResponse>> {
+    // เก็บ credentials ไว้ใช้ตอน forceLogin
+    this.pendingCredentials = { ...credentials };
+
     return this.http
       .post<ApiResponse<LoginResponse>>(`${this.API}/auth/login`, credentials)
       .pipe(
         tap((res) => {
           const { access_token, user } = res.data;
           this.setSession(access_token, user);
+          this.pendingCredentials = null;
+        }),
+        catchError((err: HttpErrorResponse) => {
+          // ─── 409 Conflict = มี session อยู่แล้วจากอุปกรณ์อื่น ──
+          if (err.status === 409 && err.error?.active_session_exists) {
+            const conflictError = {
+              type: 'ACTIVE_SESSION_CONFLICT' as const,
+              device: err.error.active_session_device || 'ไม่ทราบอุปกรณ์',
+              ip: err.error.active_session_ip || 'ไม่ทราบ IP',
+              time: err.error.active_session_time || '',
+              originalError: err,
+            };
+            return throwError(() => conflictError);
+          }
+          console.error('Login failed:', err);
+          return throwError(() => err);
+        }),
+      );
+  }
+
+  /**
+   * บังคับเข้าสู่ระบบ — kick session เดิมออก
+   * ใช้ credentials ที่เก็บไว้จาก login ครั้งก่อน
+   */
+  forceLogin(): Observable<ApiResponse<LoginResponse>> {
+    if (!this.pendingCredentials) {
+      return throwError(() => new Error('ไม่พบข้อมูลเข้าสู่ระบบ กรุณาลองใหม่'));
+    }
+
+    const credentials = this.pendingCredentials;
+
+    return this.http
+      .post<ApiResponse<LoginResponse>>(
+        `${this.API}/auth/login?force=true`,
+        credentials,
+      )
+      .pipe(
+        tap((res) => {
+          const { access_token, user } = res.data;
+          this.setSession(access_token, user);
+          this.pendingCredentials = null;
         }),
         catchError((err) => {
-          console.error('Login failed:', err);
+          console.error('Force login failed:', err);
           return throwError(() => err);
         }),
       );
@@ -138,15 +192,37 @@ export class AuthService implements OnDestroy {
   }
 
   /**
-   * ออกจากระบบ — ลบ token, user แล้ว redirect ไปหน้า Login
+   * ออกจากระบบ — แจ้ง backend ลบ session แล้วลบ local data + redirect
    * Tab อื่นจะรับ storage event แล้ว logout ตามอัตโนมัติ
    */
-  logout(): void {
+  logout(reason?: string): void {
+    // แจ้ง Backend ลบ sessionToken (fire & forget)
+    const token = this.getToken();
+    if (token) {
+      this.http.post(`${this.API}/auth/logout`, {}).subscribe({
+        error: () => { /* ignore — กำลัง logout อยู่แล้ว */ },
+      });
+    }
+
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(USER_KEY);
     this.currentUser.set(null);
     this.broadcastSync();
-    this.router.navigate(['/login']);
+
+    const extras = reason ? { queryParams: { reason } } : {};
+    this.router.navigate(['/login'], extras);
+  }
+
+  /**
+   * Force Logout — ถูกเตะออกเพราะ session ไม่ถูกต้อง (มีคนอื่น force login)
+   * ไม่ต้องแจ้ง backend เพราะ session ถูกลบไปแล้ว
+   */
+  forceLogout(reason: string = 'session_expired'): void {
+    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(USER_KEY);
+    this.currentUser.set(null);
+    this.broadcastSync();
+    this.router.navigate(['/login'], { queryParams: { reason } });
   }
 
   // ═══════════════════════════════════════════════════════
