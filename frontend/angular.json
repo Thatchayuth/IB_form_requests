@@ -52,7 +52,8 @@
               }
             ],
             "styles": [
-              "src/styles.css"
+              "node_modules/primeicons/primeicons.css",
+              "src/tailwind.gen.css"
             ]
           },
           "configurations": {
@@ -117,7 +118,8 @@
               }
             ],
             "styles": [
-              "src/styles.css"
+              "node_modules/primeicons/primeicons.css",
+              "src/tailwind.gen.css"
             ]
           }
         }

@@ -6,6 +6,9 @@
 /out-tsc
 /bazel-out
 
+# Tailwind generated CSS
+/src/tailwind.gen.css
+
 # Node
 /node_modules
 npm-debug.log

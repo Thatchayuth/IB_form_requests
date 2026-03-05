@@ -3,7 +3,11 @@
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
-    "start": "ng serve",
+    "tw:build": "tailwindcss -i src/styles.css -o src/tailwind.gen.css --minify",
+    "tw:watch": "tailwindcss -i src/styles.css -o src/tailwind.gen.css --watch",
+    "prestart": "npm run tw:build",
+    "start": "concurrently \"npm run tw:watch\" \"ng serve\"",
+    "prebuild": "npm run tw:build",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test"
@@ -43,6 +47,7 @@
     "@tailwindcss/postcss": "^4.2.1",
     "@tailwindcss/vite": "^4.2.1",
     "@types/jasmine": "~5.1.0",
+    "concurrently": "^9.2.1",
     "jasmine-core": "~5.8.0",
     "karma": "~6.4.0",
     "karma-chrome-launcher": "~3.2.0",
