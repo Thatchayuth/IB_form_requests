@@ -1,25 +1,23 @@
-<!-- รายละเอียดคำร้อง -->
+<!-- รายละเอียดคำร้อง (Tailwind) -->
 <p-toast />
 <p-confirmDialog />
 
 @if (loading) {
-  <div class="loading-state">
-    <i class="pi pi-spin pi-spinner" style="font-size: 2rem;"></i>
+  <div class="flex flex-col items-center gap-4 py-12 text-slate-500">
+    <i class="pi pi-spin pi-spinner text-3xl"></i>
     <p>กำลังโหลดข้อมูล...</p>
   </div>
 }
 
 @if (formRequest) {
-  <div class="detail-page">
+  <div>
     <!-- Header -->
-    <div class="page-header">
-      <div>
-        <h2>
-          <i class="pi pi-file"></i>
-          {{ formRequest.requestNumber }}
-        </h2>
-      </div>
-      <div class="header-actions">
+    <div class="flex items-center justify-between mb-6 flex-wrap gap-3">
+      <h2 class="text-2xl font-bold text-slate-800 flex items-center gap-2">
+        <i class="pi pi-file text-indigo-500"></i>
+        {{ formRequest.requestNumber }}
+      </h2>
+      <div class="flex flex-wrap gap-2">
         <p-button
           label="กลับ"
           icon="pi pi-arrow-left"
@@ -64,68 +62,68 @@
     </div>
 
     <!-- Info Cards -->
-    <div class="detail-grid">
-      <p-card header="ข้อมูลคำร้อง" styleClass="detail-card">
-        <div class="info-grid">
-          <div class="info-item">
-            <label>หัวข้อ</label>
-            <span>{{ formRequest.title }}</span>
+    <div class="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-4">
+      <p-card header="ข้อมูลคำร้อง">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <div>
+            <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">หัวข้อ</label>
+            <span class="text-sm text-slate-800">{{ formRequest.title }}</span>
           </div>
-          <div class="info-item">
-            <label>ประเภท</label>
-            <span>{{ typeLabels[formRequest.requestType] || formRequest.requestType }}</span>
+          <div>
+            <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">ประเภท</label>
+            <span class="text-sm text-slate-800">{{ typeLabels[formRequest.requestType] || formRequest.requestType }}</span>
           </div>
-          <div class="info-item">
-            <label>ความสำคัญ</label>
+          <div>
+            <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">ความสำคัญ</label>
             <p-tag
               [value]="priorityLabels[formRequest.priority] || formRequest.priority"
               [severity]="getPrioritySeverity(formRequest.priority)"
             />
           </div>
-          <div class="info-item">
-            <label>สถานะ</label>
+          <div>
+            <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">สถานะ</label>
             <p-tag
               [value]="statusLabels[formRequest.status] || formRequest.status"
               [severity]="getStatusSeverity(formRequest.status)"
             />
           </div>
-          <div class="info-item full-width">
-            <label>รายละเอียด</label>
-            <p class="description">{{ formRequest.description }}</p>
+          <div class="md:col-span-2">
+            <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">รายละเอียด</label>
+            <p class="text-sm text-slate-800 whitespace-pre-wrap leading-relaxed">{{ formRequest.description }}</p>
           </div>
           @if (formRequest.remarks) {
-            <div class="info-item full-width">
-              <label>หมายเหตุ</label>
-              <p class="description">{{ formRequest.remarks }}</p>
+            <div class="md:col-span-2">
+              <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">หมายเหตุ</label>
+              <p class="text-sm text-slate-800 whitespace-pre-wrap leading-relaxed">{{ formRequest.remarks }}</p>
             </div>
           }
         </div>
       </p-card>
 
-      <p-card header="ข้อมูลเพิ่มเติม" styleClass="detail-card">
-        <div class="info-grid">
-          <div class="info-item">
-            <label>ผู้ร้องขอ</label>
-            <span>{{ formRequest.requester?.fullName || '-' }}</span>
+      <p-card header="ข้อมูลเพิ่มเติม">
+        <div class="grid grid-cols-1 gap-5">
+          <div>
+            <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">ผู้ร้องขอ</label>
+            <span class="text-sm text-slate-800">{{ formRequest.requester?.fullName || '-' }}</span>
           </div>
-          <div class="info-item">
-            <label>วันที่สร้าง</label>
-            <span>{{ formRequest.createdAt | date:'dd/MM/yyyy HH:mm' }}</span>
+          <div>
+            <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">วันที่สร้าง</label>
+            <span class="text-sm text-slate-800">{{ formRequest.createdAt | date:'dd/MM/yyyy HH:mm' }}</span>
           </div>
           @if (formRequest.dueDate) {
-            <div class="info-item">
-              <label>วันกำหนดส่ง</label>
-              <span>{{ formRequest.dueDate | date:'dd/MM/yyyy' }}</span>
+            <div>
+              <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">วันกำหนดส่ง</label>
+              <span class="text-sm text-slate-800">{{ formRequest.dueDate | date:'dd/MM/yyyy' }}</span>
             </div>
           }
           @if (formRequest.approvedBy) {
-            <div class="info-item">
-              <label>ผู้อนุมัติ</label>
-              <span>{{ formRequest.approvedBy.fullName }}</span>
+            <div>
+              <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">ผู้อนุมัติ</label>
+              <span class="text-sm text-slate-800">{{ formRequest.approvedBy.fullName }}</span>
             </div>
-            <div class="info-item">
-              <label>วันที่อนุมัติ</label>
-              <span>{{ formRequest.approvedAt | date:'dd/MM/yyyy HH:mm' }}</span>
+            <div>
+              <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">วันที่อนุมัติ</label>
+              <span class="text-sm text-slate-800">{{ formRequest.approvedAt | date:'dd/MM/yyyy HH:mm' }}</span>
             </div>
           }
         </div>
@@ -133,14 +131,14 @@
     </div>
 
     <!-- ไฟล์แนบ -->
-    <p-card header="ไฟล์แนบ" styleClass="mt-3">
+    <p-card header="ไฟล์แนบ" styleClass="mt-4">
       @if (attachments.length > 0) {
-        <div class="attachment-list">
+        <div class="flex flex-col gap-2">
           @for (att of attachments; track att.id) {
-            <div class="attachment-item">
-              <i class="pi pi-paperclip"></i>
-              <span class="att-name">{{ att.fileName }}</span>
-              <span class="att-size">{{ (att.fileSize / 1024 / 1024).toFixed(2) }} MB</span>
+            <div class="flex items-center gap-3 px-3 py-2 rounded-lg bg-slate-50 border border-slate-200">
+              <i class="pi pi-paperclip text-slate-400"></i>
+              <span class="flex-1 text-sm">{{ att.fileName }}</span>
+              <span class="text-xs text-slate-400">{{ (att.fileSize / 1024 / 1024).toFixed(2) }} MB</span>
               <p-button
                 icon="pi pi-download"
                 [rounded]="true"
@@ -152,18 +150,18 @@
           }
         </div>
       } @else {
-        <p class="no-data">ไม่มีไฟล์แนบ</p>
+        <p class="text-slate-400 text-center py-4">ไม่มีไฟล์แนบ</p>
       }
     </p-card>
 
     <!-- Admin: Status Change Dialog -->
     @if (showStatusDialog) {
-      <div class="dialog-overlay" (click)="showStatusDialog = false">
-        <div class="dialog-card" (click)="$event.stopPropagation()">
-          <h3>เปลี่ยนสถานะคำร้อง</h3>
+      <div class="fixed inset-0 bg-black/40 flex items-center justify-center z-[1000]" (click)="showStatusDialog = false">
+        <div class="bg-white rounded-xl p-6 w-full max-w-md shadow-2xl" (click)="$event.stopPropagation()">
+          <h3 class="text-lg font-bold mb-2">เปลี่ยนสถานะคำร้อง</h3>
           <p-divider />
-          <div class="field">
-            <label>สถานะใหม่</label>
+          <div class="mb-4">
+            <label class="block mb-2 text-sm font-semibold text-slate-600">สถานะใหม่</label>
             <p-select
               [(ngModel)]="selectedNewStatus"
               [options]="statusOptions"
@@ -173,8 +171,8 @@
               styleClass="w-full"
             />
           </div>
-          <div class="field">
-            <label>หมายเหตุ (ถ้ามี)</label>
+          <div class="mb-4">
+            <label class="block mb-2 text-sm font-semibold text-slate-600">หมายเหตุ (ถ้ามี)</label>
             <textarea
               pTextarea
               [(ngModel)]="statusRemarks"
@@ -183,7 +181,7 @@
               placeholder="กรอกหมายเหตุ..."
             ></textarea>
           </div>
-          <div class="dialog-actions">
+          <div class="flex justify-end gap-2 pt-3 border-t border-slate-200">
             <p-button
               label="ยกเลิก"
               severity="secondary"

@@ -1,46 +1,71 @@
-<!-- Layout: Sidebar + Header + Content -->
+<!-- Layout: Sidebar + Header + Content — Tailwind + Kanit -->
 <p-toast />
 
-<div class="layout-wrapper" [class.sidebar-collapsed]="sidebarCollapsed">
+<div class="flex min-h-screen">
   <!-- ─── Sidebar ──────────────────────────────────── -->
-  <aside class="sidebar">
-    <div class="sidebar-header">
-      <span class="logo" *ngIf="!sidebarCollapsed">
-        <i class="pi pi-inbox"></i>
-        <span>ระบบคำร้อง</span>
-      </span>
-      <span class="logo-mini" *ngIf="sidebarCollapsed">
-        <i class="pi pi-inbox"></i>
-      </span>
+  <aside
+    class="fixed inset-y-0 left-0 z-50 flex flex-col bg-sidebar text-slate-300 transition-all duration-300 ease-in-out overflow-hidden"
+    [class.w-16]="sidebarCollapsed"
+    [class.w-64]="!sidebarCollapsed"
+  >
+    <!-- Logo -->
+    <div class="flex h-15 items-center border-b border-slate-700 px-4 shrink-0">
+      @if (!sidebarCollapsed) {
+        <span class="flex items-center gap-3 text-white font-bold text-lg">
+          <i class="pi pi-inbox text-xl"></i>
+          <span>ระบบคำร้อง</span>
+        </span>
+      } @else {
+        <span class="flex w-full justify-center text-white">
+          <i class="pi pi-inbox text-xl"></i>
+        </span>
+      }
     </div>
 
-    <nav class="sidebar-nav">
+    <!-- Nav -->
+    <nav class="flex-1 overflow-y-auto py-2">
       @for (item of menuItems; track item.routerLink) {
         <a
-          class="nav-item"
           [routerLink]="item.routerLink"
-          routerLinkActive="active"
+          routerLinkActive="!bg-sidebar-active !text-white !border-l-blue-500"
           [routerLinkActiveOptions]="{ exact: item.routerLink === '/' }"
+          class="flex items-center gap-3 px-4 py-3 text-slate-400 border-l-3 border-transparent hover:bg-sidebar-hover hover:text-slate-200 transition-colors cursor-pointer"
+          [class.justify-center]="sidebarCollapsed"
+          [class.px-3]="sidebarCollapsed"
         >
-          <i [class]="item.icon"></i>
-          <span class="nav-label" *ngIf="!sidebarCollapsed">{{ item.label }}</span>
+          <i class="text-lg min-w-5 text-center" [ngClass]="item.icon"></i>
+          @if (!sidebarCollapsed) {
+            <span class="whitespace-nowrap overflow-hidden">{{ item.label }}</span>
+          }
         </a>
       }
     </nav>
 
-    <div class="sidebar-footer">
-      <a class="nav-item" (click)="logout()">
-        <i class="pi pi-sign-out"></i>
-        <span class="nav-label" *ngIf="!sidebarCollapsed">ออกจากระบบ</span>
+    <!-- Footer -->
+    <div class="border-t border-slate-700 py-2 shrink-0">
+      <a
+        (click)="logout()"
+        class="flex items-center gap-3 px-4 py-3 text-slate-400 border-l-3 border-transparent hover:bg-sidebar-hover hover:text-slate-200 transition-colors cursor-pointer"
+        [class.justify-center]="sidebarCollapsed"
+        [class.px-3]="sidebarCollapsed"
+      >
+        <i class="pi pi-sign-out text-lg min-w-5 text-center"></i>
+        @if (!sidebarCollapsed) {
+          <span class="whitespace-nowrap overflow-hidden">ออกจากระบบ</span>
+        }
       </a>
     </div>
   </aside>
 
   <!-- ─── Main Content ─────────────────────────────── -->
-  <div class="main-content">
+  <div
+    class="flex-1 flex flex-col min-h-screen transition-all duration-300"
+    [class.ml-16]="sidebarCollapsed"
+    [class.ml-64]="!sidebarCollapsed"
+  >
     <!-- Header -->
-    <header class="topbar">
-      <div class="topbar-left">
+    <header class="sticky top-0 z-40 h-15 flex items-center justify-between bg-white border-b border-slate-200 px-6 shadow-sm">
+      <div class="flex items-center">
         <button
           pButton
           icon="pi pi-bars"
@@ -50,19 +75,14 @@
         ></button>
       </div>
 
-      <div class="topbar-right">
-        <!-- แจ้งเตือน (จะทำ detail ใน step ถัดไป) -->
-        <button
-          pButton
-          icon="pi pi-bell"
-          class="p-button-text p-button-rounded"
-          pTooltip="การแจ้งเตือน"
-        ></button>
+      <div class="flex items-center gap-3">
+        <!-- แผงแจ้งเตือน -->
+        <app-notification-panel />
 
         <!-- ข้อมูลผู้ใช้ -->
-        <div class="user-info">
-          <span class="user-name">{{ auth.currentUser()?.fullName }}</span>
-          <span class="user-role">{{ auth.currentUser()?.role === 'admin' ? 'ผู้ดูแลระบบ' : 'ผู้ใช้งาน' }}</span>
+        <div class="flex flex-col items-end mx-2">
+          <span class="text-sm font-semibold text-slate-800">{{ auth.currentUser()?.fullName }}</span>
+          <span class="text-xs text-slate-500 uppercase">{{ auth.currentUser()?.role === 'admin' ? 'ผู้ดูแลระบบ' : 'ผู้ใช้งาน' }}</span>
         </div>
 
         <button
@@ -76,7 +96,7 @@
     </header>
 
     <!-- Page Content -->
-    <main class="page-content">
+    <main class="flex-1 p-6 bg-slate-50">
       <router-outlet />
     </main>
   </div>

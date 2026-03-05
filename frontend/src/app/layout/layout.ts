@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { Router, RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../core/services/auth.service';
+import { NotificationPanelComponent } from '../shared/notification-panel/notification-panel';
 
 /* PrimeNG */
 import { ButtonModule } from 'primeng/button';
@@ -30,6 +31,7 @@ import { MessageService } from 'primeng/api';
     TooltipModule,
     MenuModule,
     ToastModule,
+    NotificationPanelComponent,
   ],
   providers: [MessageService],
   templateUrl: './layout.html',

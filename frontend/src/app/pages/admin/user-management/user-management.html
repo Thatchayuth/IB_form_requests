@@ -1,58 +1,61 @@
-<!-- Admin: จัดการผู้ใช้ -->
+<!-- Admin: จัดการผู้ใช้ (Tailwind) -->
 <p-toast />
 <p-confirmDialog />
 
-<div class="user-management">
-  <div class="page-header">
-    <h2><i class="pi pi-users"></i> จัดการผู้ใช้งาน</h2>
+<div>
+  <!-- Page Header -->
+  <div class="flex items-center justify-between mb-6">
+    <h2 class="text-2xl font-bold text-slate-800 flex items-center gap-2">
+      <i class="pi pi-users text-indigo-500"></i> จัดการผู้ใช้งาน
+    </h2>
   </div>
 
   <!-- Stats Cards -->
   @if (stats) {
-    <div class="stat-cards">
-      <div class="stat-card">
-        <div class="stat-icon" style="background: #dbeafe; color: #3b82f6;">
-          <i class="pi pi-users"></i>
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+      <div class="bg-white rounded-xl p-5 flex items-center gap-4 shadow-sm">
+        <div class="w-12 h-12 rounded-xl flex items-center justify-center bg-blue-100 text-blue-500">
+          <i class="pi pi-users text-xl"></i>
         </div>
-        <div class="stat-info">
-          <span class="stat-value">{{ stats.total }}</span>
-          <span class="stat-label">ผู้ใช้ทั้งหมด</span>
-        </div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-icon" style="background: #d1fae5; color: #059669;">
-          <i class="pi pi-check-circle"></i>
-        </div>
-        <div class="stat-info">
-          <span class="stat-value">{{ stats.active }}</span>
-          <span class="stat-label">ใช้งานอยู่</span>
+        <div class="flex flex-col">
+          <span class="text-2xl font-bold text-slate-800">{{ stats.total }}</span>
+          <span class="text-xs text-slate-500">ผู้ใช้ทั้งหมด</span>
         </div>
       </div>
-      <div class="stat-card">
-        <div class="stat-icon" style="background: #fee2e2; color: #dc2626;">
-          <i class="pi pi-ban"></i>
+      <div class="bg-white rounded-xl p-5 flex items-center gap-4 shadow-sm">
+        <div class="w-12 h-12 rounded-xl flex items-center justify-center bg-green-100 text-green-600">
+          <i class="pi pi-check-circle text-xl"></i>
         </div>
-        <div class="stat-info">
-          <span class="stat-value">{{ stats.inactive }}</span>
-          <span class="stat-label">ปิดการใช้งาน</span>
+        <div class="flex flex-col">
+          <span class="text-2xl font-bold text-slate-800">{{ stats.active }}</span>
+          <span class="text-xs text-slate-500">ใช้งานอยู่</span>
+        </div>
+      </div>
+      <div class="bg-white rounded-xl p-5 flex items-center gap-4 shadow-sm">
+        <div class="w-12 h-12 rounded-xl flex items-center justify-center bg-red-100 text-red-600">
+          <i class="pi pi-ban text-xl"></i>
+        </div>
+        <div class="flex flex-col">
+          <span class="text-2xl font-bold text-slate-800">{{ stats.inactive }}</span>
+          <span class="text-xs text-slate-500">ปิดการใช้งาน</span>
         </div>
       </div>
     </div>
   }
 
   <!-- Search -->
-  <p-card styleClass="mb-3">
-    <div class="search-row">
+  <div class="bg-white rounded-xl shadow-sm p-4 mb-4">
+    <div class="flex items-center gap-4">
       <input
         pInputText
         [(ngModel)]="search"
         placeholder="ค้นหาผู้ใช้... (ชื่อ, username, email)"
         (keyup.enter)="onSearch()"
-        class="search-input"
+        class="flex-1"
       />
       <p-button label="ค้นหา" icon="pi pi-search" (onClick)="onSearch()" />
     </div>
-  </p-card>
+  </div>
 
   <!-- Users Table -->
   <p-table
@@ -118,9 +121,9 @@
 
     <ng-template #emptymessage>
       <tr>
-        <td colspan="7" class="text-center p-4">
-          <i class="pi pi-users" style="font-size: 2rem; color: #94a3b8;"></i>
-          <p style="color: #94a3b8; margin-top: 0.5rem;">ไม่พบข้อมูลผู้ใช้</p>
+        <td colspan="7" class="text-center py-8">
+          <i class="pi pi-users text-4xl text-slate-400"></i>
+          <p class="text-slate-400 mt-2">ไม่พบข้อมูลผู้ใช้</p>
         </td>
       </tr>
     </ng-template>

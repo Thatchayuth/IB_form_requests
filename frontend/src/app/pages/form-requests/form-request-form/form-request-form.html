@@ -1,10 +1,11 @@
-<!-- ฟอร์มสร้าง/แก้ไขคำร้อง -->
+<!-- ฟอร์มสร้าง/แก้ไขคำร้อง (Tailwind) -->
 <p-toast />
 
-<div class="form-page">
-  <div class="page-header">
-    <h2>
-      <i class="pi pi-file-edit"></i>
+<div>
+  <!-- Page Header -->
+  <div class="flex items-center justify-between mb-6">
+    <h2 class="text-2xl font-bold text-slate-800 flex items-center gap-2">
+      <i class="pi pi-file-edit text-indigo-500"></i>
       {{ isEditMode ? 'แก้ไขคำร้อง' : 'สร้างคำร้องใหม่' }}
     </h2>
     <p-button
@@ -17,17 +18,17 @@
   </div>
 
   @if (loading) {
-    <div class="loading-state">
-      <i class="pi pi-spin pi-spinner" style="font-size: 2rem;"></i>
+    <div class="flex flex-col items-center gap-4 py-12 text-slate-500">
+      <i class="pi pi-spin pi-spinner text-3xl"></i>
       <p>กำลังโหลดข้อมูล...</p>
     </div>
   } @else {
     <p-card>
-      <form (ngSubmit)="save()" class="form-grid">
+      <form (ngSubmit)="save()" class="grid grid-cols-1 md:grid-cols-3 gap-5">
         <!-- หัวข้อ -->
-        <div class="field full-width">
-          <label for="title">
-            <span class="required">*</span> หัวข้อคำร้อง
+        <div class="md:col-span-3">
+          <label for="title" class="block mb-2 text-sm font-semibold text-slate-600">
+            <span class="text-red-500">*</span> หัวข้อคำร้อง
           </label>
           <input
             pInputText
@@ -41,8 +42,8 @@
         </div>
 
         <!-- ประเภท -->
-        <div class="field">
-          <label for="type">ประเภทคำร้อง</label>
+        <div>
+          <label for="type" class="block mb-2 text-sm font-semibold text-slate-600">ประเภทคำร้อง</label>
           <p-select
             id="type"
             [(ngModel)]="formData.requestType"
@@ -55,8 +56,8 @@
         </div>
 
         <!-- ความสำคัญ -->
-        <div class="field">
-          <label for="priority">ความสำคัญ</label>
+        <div>
+          <label for="priority" class="block mb-2 text-sm font-semibold text-slate-600">ความสำคัญ</label>
           <p-select
             id="priority"
             [(ngModel)]="formData.priority"
@@ -69,8 +70,8 @@
         </div>
 
         <!-- วันกำหนดส่ง -->
-        <div class="field">
-          <label for="dueDate">วันกำหนดส่ง</label>
+        <div>
+          <label for="dueDate" class="block mb-2 text-sm font-semibold text-slate-600">วันกำหนดส่ง</label>
           <p-datepicker
             id="dueDate"
             [(ngModel)]="formData.dueDate"
@@ -83,9 +84,9 @@
         </div>
 
         <!-- รายละเอียด -->
-        <div class="field full-width">
-          <label for="description">
-            <span class="required">*</span> รายละเอียด
+        <div class="md:col-span-3">
+          <label for="description" class="block mb-2 text-sm font-semibold text-slate-600">
+            <span class="text-red-500">*</span> รายละเอียด
           </label>
           <textarea
             pTextarea
@@ -100,8 +101,8 @@
         </div>
 
         <!-- ไฟล์แนบ -->
-        <div class="field full-width">
-          <label>ไฟล์แนบ (สูงสุด 5 ไฟล์, ไม่เกิน 10MB/ไฟล์)</label>
+        <div class="md:col-span-3">
+          <label class="block mb-2 text-sm font-semibold text-slate-600">ไฟล์แนบ (สูงสุด 5 ไฟล์, ไม่เกิน 10MB/ไฟล์)</label>
           <p-fileUpload
             mode="advanced"
             name="files"
@@ -114,13 +115,13 @@
             (onSelect)="onFileSelect($event)"
           >
             <ng-template #empty>
-              <p class="text-center text-muted">ลากไฟล์มาวางที่นี่ หรือกดเลือกไฟล์</p>
+              <p class="text-center text-slate-400">ลากไฟล์มาวางที่นี่ หรือกดเลือกไฟล์</p>
             </ng-template>
           </p-fileUpload>
         </div>
 
         <!-- Actions -->
-        <div class="form-actions full-width">
+        <div class="md:col-span-3 flex justify-end gap-3 pt-4 border-t border-slate-200">
           <p-button
             label="ยกเลิก"
             severity="secondary"

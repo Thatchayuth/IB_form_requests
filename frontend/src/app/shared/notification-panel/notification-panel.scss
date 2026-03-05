@@ -1,0 +1,29 @@
+/* ─── Notification Panel — Tailwind ใช้ใน template แล้ว ── */
+
+/* แสดงปุ่มลบเมื่อ hover บน notification item */
+.notification-item {
+  .noti-delete {
+    opacity: 0;
+    transition: opacity 0.15s;
+  }
+
+  &:hover .noti-delete {
+    opacity: 1;
+  }
+}
+
+/* line-clamp สำหรับข้อความ */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .w-96 {
+    width: calc(100vw - 20px) !important;
+    right: -70px;
+  }
+}

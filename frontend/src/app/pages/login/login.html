@@ -1,22 +1,23 @@
-<!-- Login Page — หน้าเข้าสู่ระบบ -->
-<div class="login-container">
-  <div class="login-card">
-    <div class="login-header">
-      <i class="pi pi-inbox login-icon"></i>
-      <h1>ระบบจัดการคำร้อง</h1>
-      <p>Form Request Management System</p>
+<!-- Login Page — หน้าเข้าสู่ระบบ (Tailwind + Kanit) -->
+<div class="flex items-center justify-center min-h-screen bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 p-4">
+  <div class="w-full max-w-md bg-white rounded-2xl shadow-2xl p-10">
+    <!-- Header -->
+    <div class="text-center mb-8">
+      <i class="pi pi-inbox text-5xl text-indigo-500 mb-3 block"></i>
+      <h1 class="text-2xl font-bold text-slate-800">ระบบจัดการคำร้อง</h1>
+      <p class="text-slate-500 text-sm mt-1">Form Request Management System</p>
     </div>
 
     <!-- Error Message -->
     @if (errorMessage) {
-      <p-message severity="error" [text]="errorMessage" styleClass="mb-3 w-full" />
+      <p-message severity="error" [text]="errorMessage" styleClass="mb-4 w-full" />
     }
 
     <!-- Login Form -->
-    <form (ngSubmit)="onLogin()" class="login-form">
-      <div class="field">
-        <label for="username">
-          <i class="pi pi-user"></i> ชื่อผู้ใช้ (AD Username)
+    <form (ngSubmit)="onLogin()" class="space-y-5">
+      <div>
+        <label for="username" class="block mb-2 text-sm font-semibold text-slate-600">
+          <i class="pi pi-user mr-1"></i> ชื่อผู้ใช้ (AD Username)
         </label>
         <input
           pInputText
@@ -30,9 +31,9 @@
         />
       </div>
 
-      <div class="field">
-        <label for="password">
-          <i class="pi pi-lock"></i> รหัสผ่าน
+      <div>
+        <label for="password" class="block mb-2 text-sm font-semibold text-slate-600">
+          <i class="pi pi-lock mr-1"></i> รหัสผ่าน
         </label>
         <p-password
           id="password"
@@ -57,7 +58,7 @@
       />
     </form>
 
-    <div class="login-footer">
+    <div class="text-center mt-6 text-slate-400 text-xs">
       <small>เข้าสู่ระบบด้วยบัญชี Active Directory ของคุณ</small>
     </div>
   </div>
