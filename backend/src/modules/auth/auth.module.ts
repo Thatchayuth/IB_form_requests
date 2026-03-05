@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { HttpModule } from '@nestjs/axios';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -10,10 +11,11 @@ import { jwtConfig } from '../../config/jwt.config';
 
 /**
  * Auth Module
- * รวม Authentication ทั้งหมด: Login, Register, JWT Strategy
+ * รวม Authentication ทั้งหมด: AD Login, JWT Strategy
  *
  * Dependencies:
- * - TypeOrmModule: ใช้ User repository สำหรับค้นหาผู้ใช้
+ * - HttpModule: ใช้เรียก AD API (Basic Auth)
+ * - TypeOrmModule: ใช้ User repository สำหรับค้นหา/สร้างผู้ใช้
  * - PassportModule: ใช้ Passport strategies (JWT)
  * - JwtModule: ใช้สร้างและตรวจสอบ JWT token
  *
@@ -23,6 +25,12 @@ import { jwtConfig } from '../../config/jwt.config';
  */
 @Module({
   imports: [
+    // HttpModule สำหรับเรียก AD API (timeout 10 วินาที)
+    HttpModule.register({
+      timeout: 10000,
+      maxRedirects: 3,
+    }),
+
     // ลงทะเบียน User entity สำหรับ repository
     TypeOrmModule.forFeature([User]),
 

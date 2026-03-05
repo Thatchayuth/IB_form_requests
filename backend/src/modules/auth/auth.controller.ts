@@ -6,20 +6,18 @@ import {
   ApiBearerAuth,
 } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
-import { LoginDto } from './dto/login.dto';
-import { RegisterDto } from './dto/register.dto';
+import { AdLoginDto } from './dto/ad-login.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { User } from '../users/entities/user.entity';
 
 /**
  * Auth Controller
- * จัดการ Authentication: Login, Register, Profile
+ * จัดการ Authentication ผ่าน Active Directory + JWT
  *
  * Endpoints:
- *   POST /api/auth/login     - เข้าสู่ระบบ
- *   POST /api/auth/register  - สมัครสมาชิก
- *   GET  /api/auth/profile   - ดูข้อมูลส่วนตัว (ต้อง Login)
+ *   POST /api/auth/login     - เข้าสู่ระบบผ่าน AD (username + password)
+ *   GET  /api/auth/profile   - ดูข้อมูลส่วนตัว (ต้องมี JWT token)
  */
 @ApiTags('Authentication')
 @Controller('auth')
@@ -28,28 +26,17 @@ export class AuthController {
 
   /**
    * POST /api/auth/login
-   * เข้าสู่ระบบด้วยอีเมลและรหัสผ่าน
+   * เข้าสู่ระบบด้วย AD username + password
+   * → ส่ง Basic Auth ไปยัง AD API → ได้ข้อมูลผู้ใช้ → Insert/Update ในระบบ → สร้าง JWT
    */
   @Post('login')
   @HttpCode(HttpStatus.OK) // ส่ง 200 แทน 201
-  @ApiOperation({ summary: 'เข้าสู่ระบบ' })
+  @ApiOperation({ summary: 'เข้าสู่ระบบผ่าน Active Directory' })
   @ApiResponse({ status: 200, description: 'เข้าสู่ระบบสำเร็จ ได้รับ JWT token' })
-  @ApiResponse({ status: 401, description: 'อีเมลหรือรหัสผ่านไม่ถูกต้อง' })
-  async login(@Body() loginDto: LoginDto) {
-    return this.authService.login(loginDto);
-  }
-
-  /**
-   * POST /api/auth/register
-   * สมัครสมาชิกใหม่
-   */
-  @Post('register')
-  @ApiOperation({ summary: 'สมัครสมาชิก' })
-  @ApiResponse({ status: 201, description: 'สมัครสมาชิกสำเร็จ ได้รับ JWT token' })
-  @ApiResponse({ status: 409, description: 'อีเมลหรือรหัสพนักงานซ้ำ' })
-  @ApiResponse({ status: 400, description: 'ข้อมูลไม่ถูกต้อง' })
-  async register(@Body() registerDto: RegisterDto) {
-    return this.authService.register(registerDto);
+  @ApiResponse({ status: 401, description: 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง' })
+  @ApiResponse({ status: 500, description: 'ไม่สามารถเชื่อมต่อ AD ได้' })
+  async login(@Body() adLoginDto: AdLoginDto) {
+    return this.authService.login(adLoginDto);
   }
 
   /**

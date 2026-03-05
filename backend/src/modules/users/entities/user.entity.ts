@@ -14,7 +14,7 @@ import { Notification } from '../../notifications/entities/notification.entity';
 
 /**
  * Entity: Users
- * ตารางเก็บข้อมูลผู้ใช้งานระบบ
+ * ตารางเก็บข้อมูลผู้ใช้งานระบบ (ข้อมูลจาก Active Directory + ข้อมูลในระบบ)
  *
  * ความสัมพันธ์:
  * - User 1 → N FormRequest (ผู้สร้างคำร้อง)
@@ -27,20 +27,24 @@ export class User {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ApiProperty({ description: 'รหัสพนักงาน', example: 'EMP001' })
-  @Column({ type: 'nvarchar', length: 50, unique: true })
+  @ApiProperty({ description: 'ชื่อผู้ใช้ AD (Active Directory username)', example: 'thatchayuth' })
+  @Column({ type: 'nvarchar', length: 100, unique: true })
+  username: string;
+
+  @ApiProperty({ description: 'รหัสพนักงาน (กรอกเองภายหลัง)', example: 'EMP001', required: false })
+  @Column({ type: 'nvarchar', length: 50, unique: true, nullable: true })
   employeeId: string;
 
-  @ApiProperty({ description: 'ชื่อ-นามสกุล', example: 'สมชาย ใจดี' })
+  @ApiProperty({ description: 'ชื่อ-นามสกุล (จาก AD displayName)', example: 'Thatchayuth Tochay' })
   @Column({ type: 'nvarchar', length: 200 })
   fullName: string;
 
-  @ApiProperty({ description: 'อีเมล', example: 'somchai@example.com' })
-  @Column({ type: 'nvarchar', length: 200, unique: true })
+  @ApiProperty({ description: 'อีเมล (จาก AD)', example: 'thatchayuth@ncr-rubber.com' })
+  @Column({ type: 'nvarchar', length: 200, unique: true, nullable: true })
   email: string;
 
-  @Exclude() // ซ่อน password hash จาก response
-  @Column({ type: 'nvarchar', length: 500 })
+  @Exclude() // ซ่อน password hash จาก response (ไม่ใช้สำหรับ AD Login)
+  @Column({ type: 'nvarchar', length: 500, nullable: true })
   passwordHash: string;
 
   @ApiProperty({ description: 'บทบาท', enum: UserRole, example: UserRole.USER })
@@ -54,6 +58,10 @@ export class User {
   @ApiProperty({ description: 'แผนก/ฝ่าย', example: 'ฝ่ายบัญชี' })
   @Column({ type: 'nvarchar', length: 200, nullable: true })
   department: string;
+
+  @ApiProperty({ description: 'กลุ่ม AD (เก็บเป็น JSON)', example: '["ICT","BKK-VPN"]' })
+  @Column({ type: 'nvarchar', length: 'MAX', nullable: true })
+  adGroups: string;
 
   @ApiProperty({ description: 'สถานะใช้งาน', example: true })
   @Column({ type: 'bit', default: true })

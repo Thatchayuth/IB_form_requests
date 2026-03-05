@@ -8,11 +8,11 @@ import { User } from '../../users/entities/user.entity';
 
 /**
  * JWT Payload Interface
- * ข้อมูลที่เก็บใน JWT token
+ * ข้อมูลที่เก็บใน JWT token (สร้างตอน login สำเร็จ)
  */
 export interface JwtPayload {
   sub: number;        // user id
-  employeeId: string;
+  username: string;   // AD username
   email: string;
   role: string;
 }

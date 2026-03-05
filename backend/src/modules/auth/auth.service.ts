@@ -1,22 +1,44 @@
 import {
   Injectable,
   UnauthorizedException,
-  ConflictException,
   Logger,
+  InternalServerErrorException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { ConfigService } from '@nestjs/config';
+import { HttpService } from '@nestjs/axios';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import * as bcrypt from 'bcryptjs';
+import { firstValueFrom } from 'rxjs';
 import { User } from '../users/entities/user.entity';
-import { LoginDto } from './dto/login.dto';
-import { RegisterDto } from './dto/register.dto';
+import { AdLoginDto } from './dto/ad-login.dto';
 import { UserRole } from '../../common/enums';
 import { JwtPayload } from './strategies/jwt.strategy';
 
 /**
+ * Interface สำหรับ response จาก AD API
+ * ข้อมูลที่ AD ส่งกลับมาหลังยืนยันตัวตนสำเร็จ
+ */
+interface AdAuthResponse {
+  username: string;
+  displayName: string;
+  email: string;
+  groups: string[];
+  role: string;
+}
+
+/**
  * Auth Service
- * จัดการ Login, Register, สร้าง JWT token
+ * จัดการ Login ผ่าน Active Directory (AD) และสร้าง JWT token
+ *
+ * ขั้นตอน Login:
+ * 1. ส่ง username/password ไปยัง AD API ด้วย Basic Auth
+ * 2. AD ตรวจสอบ → ส่งข้อมูลผู้ใช้กลับมา (username, displayName, email, groups)
+ * 3. ตรวจสอบว่ามี user ในตาราง Users หรือยัง
+ *    - ถ้ามี → อัพเดทข้อมูล (displayName, email, groups)
+ *    - ถ้าไม่มี → สร้าง user ใหม่ (role = User)
+ * 4. สร้าง JWT token จากข้อมูลใน DB ของเรา
+ * 5. ส่ง token + ข้อมูล user กลับ
  */
 @Injectable()
 export class AuthService {
@@ -26,120 +48,139 @@ export class AuthService {
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     private readonly jwtService: JwtService,
+    private readonly configService: ConfigService,
+    private readonly httpService: HttpService,
   ) {}
 
   /**
-   * Login - ตรวจสอบอีเมลและรหัสผ่าน แล้วสร้าง JWT token
+   * Login ผ่าน Active Directory
+   * เรียก AD API ด้วย Basic Auth แล้ว upsert user ในระบบ
    */
-  async login(loginDto: LoginDto): Promise<{ access_token: string; user: Partial<User> }> {
-    const { email, password } = loginDto;
+  async login(adLoginDto: AdLoginDto): Promise<{ access_token: string; user: Partial<User> }> {
+    const { username, password } = adLoginDto;
 
-    // ค้นหา user จากอีเมล
-    const user = await this.userRepository.findOne({
-      where: { email },
-    });
+    // ขั้นตอนที่ 1: เรียก AD API ตรวจสอบ username/password
+    const adUser = await this.authenticateWithAD(username, password);
 
-    if (!user) {
-      throw new UnauthorizedException('อีเมลหรือรหัสผ่านไม่ถูกต้อง');
-    }
+    // ขั้นตอนที่ 2: Insert หรือ Update user ในตาราง Users
+    const user = await this.upsertUser(adUser);
 
-    // ตรวจสอบว่า user ยัง active อยู่
+    // ขั้นตอนที่ 3: ตรวจสอบว่า user ยัง active อยู่
     if (!user.isActive) {
       throw new UnauthorizedException('บัญชีผู้ใช้ถูกปิดการใช้งาน กรุณาติดต่อผู้ดูแลระบบ');
     }
 
-    // ตรวจสอบรหัสผ่าน
-    const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
-    if (!isPasswordValid) {
-      throw new UnauthorizedException('อีเมลหรือรหัสผ่านไม่ถูกต้อง');
-    }
-
-    // สร้าง JWT token
+    // ขั้นตอนที่ 4: สร้าง JWT token
     const payload: JwtPayload = {
       sub: user.id,
-      employeeId: user.employeeId,
+      username: user.username,
       email: user.email,
       role: user.role,
     };
 
     const accessToken = this.jwtService.sign(payload);
 
-    this.logger.log(`ผู้ใช้ ${user.email} เข้าสู่ระบบสำเร็จ`);
+    this.logger.log(`ผู้ใช้ ${user.username} (${user.fullName}) เข้าสู่ระบบสำเร็จผ่าน AD`);
 
     return {
       access_token: accessToken,
       user: {
         id: user.id,
+        username: user.username,
         employeeId: user.employeeId,
         fullName: user.fullName,
         email: user.email,
         role: user.role,
         department: user.department,
+        adGroups: user.adGroups,
       },
     };
   }
 
   /**
-   * Register - สมัครสมาชิกใหม่ (บทบาทเริ่มต้นเป็น User)
+   * เรียก AD API ด้วย Basic Auth เพื่อตรวจสอบ username/password
+   * AD API: GET {AD_AUTH_URL} + Authorization: Basic base64(username:password)
    */
-  async register(registerDto: RegisterDto): Promise<{ access_token: string; user: Partial<User> }> {
-    const { employeeId, fullName, email, password, department } = registerDto;
+  private async authenticateWithAD(username: string, password: string): Promise<AdAuthResponse> {
+    const adUrl = this.configService.get<string>('AD_AUTH_URL');
 
-    // ตรวจสอบว่ามี email ซ้ำหรือไม่
-    const existingEmail = await this.userRepository.findOne({
-      where: { email },
-    });
-    if (existingEmail) {
-      throw new ConflictException('อีเมลนี้ถูกใช้งานแล้ว');
+    if (!adUrl) {
+      this.logger.error('ไม่พบ AD_AUTH_URL ใน .env');
+      throw new InternalServerErrorException('ไม่สามารถเชื่อมต่อระบบ AD ได้ กรุณาติดต่อผู้ดูแลระบบ');
     }
 
-    // ตรวจสอบว่ามี employeeId ซ้ำหรือไม่
-    const existingEmployee = await this.userRepository.findOne({
-      where: { employeeId },
+    // สร้าง Basic Auth token: base64(username:password)
+    const basicToken = Buffer.from(`${username}:${password}`).toString('base64');
+
+    try {
+      const response = await firstValueFrom(
+        this.httpService.get<AdAuthResponse>(adUrl, {
+          headers: {
+            Authorization: `Basic ${basicToken}`,
+          },
+          timeout: 10000, // timeout 10 วินาที
+        }),
+      );
+
+      this.logger.log(`AD ยืนยันตัวตน ${username} สำเร็จ`);
+      return response.data;
+    } catch (error: any) {
+      // กรณี AD ส่ง 401 (username/password ไม่ถูกต้อง)
+      if (error?.response?.status === 401) {
+        throw new UnauthorizedException('ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง');
+      }
+
+      // กรณี AD ส่ง 403 (ไม่มีสิทธิ์)
+      if (error?.response?.status === 403) {
+        throw new UnauthorizedException('ไม่มีสิทธิ์เข้าใช้งานระบบ');
+      }
+
+      // กรณีเชื่อมต่อ AD ไม่ได้ (network error, timeout)
+      this.logger.error(`ไม่สามารถเชื่อมต่อ AD API: ${error.message}`);
+      throw new InternalServerErrorException(
+        'ไม่สามารถเชื่อมต่อระบบ AD ได้ กรุณาลองใหม่อีกครั้ง',
+      );
+    }
+  }
+
+  /**
+   * Insert หรือ Update user ในตาราง Users
+   * - ถ้ามี username ในระบบแล้ว → Update ข้อมูลจาก AD (displayName, email, groups)
+   * - ถ้าไม่มี → สร้าง user ใหม่ (role = User)
+   */
+  private async upsertUser(adUser: AdAuthResponse): Promise<User> {
+    // ค้นหา user จาก username (AD username)
+    let user = await this.userRepository.findOne({
+      where: { username: adUser.username },
     });
-    if (existingEmployee) {
-      throw new ConflictException('รหัสพนักงานนี้ถูกใช้งานแล้ว');
+
+    const adGroupsJson = JSON.stringify(adUser.groups || []);
+
+    if (user) {
+      // มีอยู่แล้ว → อัพเดทข้อมูลจาก AD (ไม่เปลี่ยน role เพราะ Admin กำหนดเอง)
+      user.fullName = adUser.displayName || user.fullName;
+      user.email = adUser.email || user.email;
+      user.adGroups = adGroupsJson;
+      // ไม่เปลี่ยน role, department, isActive, employeeId (จัดการในระบบเอง)
+
+      user = await this.userRepository.save(user);
+      this.logger.log(`อัพเดทข้อมูลผู้ใช้ ${user.username} จาก AD`);
+    } else {
+      // ไม่มี → สร้างใหม่
+      user = this.userRepository.create({
+        username: adUser.username,
+        fullName: adUser.displayName || adUser.username,
+        email: adUser.email || undefined,
+        role: UserRole.USER, // ทุกคนเป็น User เริ่มต้น (Admin กำหนดทีหลัง)
+        adGroups: adGroupsJson,
+        isActive: true,
+      });
+
+      user = await this.userRepository.save(user) as User;
+      this.logger.log(`สร้างผู้ใช้ใหม่จาก AD: ${user.username}`);
     }
 
-    // Hash password ด้วย bcrypt (salt rounds = 12)
-    const passwordHash = await bcrypt.hash(password, 12);
-
-    // สร้าง user ใหม่
-    const user = this.userRepository.create({
-      employeeId,
-      fullName,
-      email,
-      passwordHash,
-      role: UserRole.USER, // บทบาทเริ่มต้นเป็น User
-      department: department || undefined,
-      isActive: true,
-    });
-
-    const savedUser = await this.userRepository.save(user) as User;
-
-    // สร้าง JWT token
-    const payload: JwtPayload = {
-      sub: savedUser.id,
-      employeeId: savedUser.employeeId,
-      email: savedUser.email,
-      role: savedUser.role,
-    };
-
-    const accessToken = this.jwtService.sign(payload);
-
-    this.logger.log(`ผู้ใช้ใหม่สมัครสมาชิก: ${savedUser.email}`);
-
-    return {
-      access_token: accessToken,
-      user: {
-        id: savedUser.id,
-        employeeId: savedUser.employeeId,
-        fullName: savedUser.fullName,
-        email: savedUser.email,
-        role: savedUser.role,
-        department: savedUser.department,
-      },
-    };
+    return user;
   }
 
   /**
@@ -157,11 +198,13 @@ export class AuthService {
     // ส่งกลับเฉพาะข้อมูลที่ต้องการ (ไม่รวม passwordHash)
     return {
       id: user.id,
+      username: user.username,
       employeeId: user.employeeId,
       fullName: user.fullName,
       email: user.email,
       role: user.role,
       department: user.department,
+      adGroups: user.adGroups,
       isActive: user.isActive,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
