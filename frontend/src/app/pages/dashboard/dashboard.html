@@ -1,0 +1,52 @@
+<!-- Dashboard — แดชบอร์ดระบบจัดการคำร้อง -->
+<div class="dashboard">
+  <div class="page-header">
+    <h2>
+      <i class="pi pi-home"></i>
+      แดชบอร์ด
+    </h2>
+    <span class="welcome-text">
+      สวัสดี, {{ auth.currentUser()?.fullName }}
+    </span>
+  </div>
+
+  <!-- Stat Cards -->
+  <div class="stat-cards">
+    @for (card of statCards; track card.label) {
+      <div class="stat-card">
+        <div class="stat-icon" [style.background]="card.color + '15'" [style.color]="card.color">
+          <i [class]="card.icon"></i>
+        </div>
+        <div class="stat-info">
+          <span class="stat-value">{{ card.value }}</span>
+          <span class="stat-label">{{ card.label }}</span>
+        </div>
+      </div>
+    }
+  </div>
+
+  <!-- Charts -->
+  @if (stats) {
+    <div class="charts-row">
+      <p-card header="คำร้องตามสถานะ" styleClass="chart-card">
+        @if (statusChartData) {
+          <p-chart type="doughnut" [data]="statusChartData" [options]="chartOptions" />
+        }
+      </p-card>
+
+      <p-card header="คำร้องตามความสำคัญ" styleClass="chart-card">
+        @if (priorityChartData) {
+          <p-chart type="pie" [data]="priorityChartData" [options]="chartOptions" />
+        }
+      </p-card>
+    </div>
+  }
+
+  <!-- Loading -->
+  @if (loading) {
+    <div class="loading-state">
+      <i class="pi pi-spin pi-spinner" style="font-size: 2rem;"></i>
+      <p>กำลังโหลดข้อมูล...</p>
+    </div>
+  }
+</div>

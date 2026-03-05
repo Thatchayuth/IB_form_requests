@@ -1,0 +1,64 @@
+<!-- Login Page — หน้าเข้าสู่ระบบ -->
+<div class="login-container">
+  <div class="login-card">
+    <div class="login-header">
+      <i class="pi pi-inbox login-icon"></i>
+      <h1>ระบบจัดการคำร้อง</h1>
+      <p>Form Request Management System</p>
+    </div>
+
+    <!-- Error Message -->
+    @if (errorMessage) {
+      <p-message severity="error" [text]="errorMessage" styleClass="mb-3 w-full" />
+    }
+
+    <!-- Login Form -->
+    <form (ngSubmit)="onLogin()" class="login-form">
+      <div class="field">
+        <label for="username">
+          <i class="pi pi-user"></i> ชื่อผู้ใช้ (AD Username)
+        </label>
+        <input
+          pInputText
+          id="username"
+          [(ngModel)]="username"
+          name="username"
+          placeholder="กรอก AD Username"
+          class="w-full"
+          [disabled]="loading"
+          autocomplete="username"
+        />
+      </div>
+
+      <div class="field">
+        <label for="password">
+          <i class="pi pi-lock"></i> รหัสผ่าน
+        </label>
+        <p-password
+          id="password"
+          [(ngModel)]="password"
+          name="password"
+          placeholder="กรอกรหัสผ่าน"
+          [feedback]="false"
+          [toggleMask]="true"
+          styleClass="w-full"
+          inputStyleClass="w-full"
+          [disabled]="loading"
+          autocomplete="current-password"
+        />
+      </div>
+
+      <p-button
+        type="submit"
+        label="เข้าสู่ระบบ"
+        icon="pi pi-sign-in"
+        styleClass="w-full"
+        [loading]="loading"
+      />
+    </form>
+
+    <div class="login-footer">
+      <small>เข้าสู่ระบบด้วยบัญชี Active Directory ของคุณ</small>
+    </div>
+  </div>
+</div>

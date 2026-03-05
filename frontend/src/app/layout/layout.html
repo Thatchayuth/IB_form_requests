@@ -1,0 +1,83 @@
+<!-- Layout: Sidebar + Header + Content -->
+<p-toast />
+
+<div class="layout-wrapper" [class.sidebar-collapsed]="sidebarCollapsed">
+  <!-- ─── Sidebar ──────────────────────────────────── -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <span class="logo" *ngIf="!sidebarCollapsed">
+        <i class="pi pi-inbox"></i>
+        <span>ระบบคำร้อง</span>
+      </span>
+      <span class="logo-mini" *ngIf="sidebarCollapsed">
+        <i class="pi pi-inbox"></i>
+      </span>
+    </div>
+
+    <nav class="sidebar-nav">
+      @for (item of menuItems; track item.routerLink) {
+        <a
+          class="nav-item"
+          [routerLink]="item.routerLink"
+          routerLinkActive="active"
+          [routerLinkActiveOptions]="{ exact: item.routerLink === '/' }"
+        >
+          <i [class]="item.icon"></i>
+          <span class="nav-label" *ngIf="!sidebarCollapsed">{{ item.label }}</span>
+        </a>
+      }
+    </nav>
+
+    <div class="sidebar-footer">
+      <a class="nav-item" (click)="logout()">
+        <i class="pi pi-sign-out"></i>
+        <span class="nav-label" *ngIf="!sidebarCollapsed">ออกจากระบบ</span>
+      </a>
+    </div>
+  </aside>
+
+  <!-- ─── Main Content ─────────────────────────────── -->
+  <div class="main-content">
+    <!-- Header -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <button
+          pButton
+          icon="pi pi-bars"
+          class="p-button-text p-button-rounded"
+          (click)="toggleSidebar()"
+          pTooltip="Toggle Sidebar"
+        ></button>
+      </div>
+
+      <div class="topbar-right">
+        <!-- แจ้งเตือน (จะทำ detail ใน step ถัดไป) -->
+        <button
+          pButton
+          icon="pi pi-bell"
+          class="p-button-text p-button-rounded"
+          pTooltip="การแจ้งเตือน"
+        ></button>
+
+        <!-- ข้อมูลผู้ใช้ -->
+        <div class="user-info">
+          <span class="user-name">{{ auth.currentUser()?.fullName }}</span>
+          <span class="user-role">{{ auth.currentUser()?.role === 'admin' ? 'ผู้ดูแลระบบ' : 'ผู้ใช้งาน' }}</span>
+        </div>
+
+        <button
+          pButton
+          icon="pi pi-sign-out"
+          class="p-button-text p-button-rounded p-button-danger"
+          (click)="logout()"
+          pTooltip="ออกจากระบบ"
+        ></button>
+      </div>
+    </header>
+
+    <!-- Page Content -->
+    <main class="page-content">
+      <router-outlet />
+    </main>
+  </div>
+</div>

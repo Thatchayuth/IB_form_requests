@@ -1,0 +1,140 @@
+<!-- ฟอร์มสร้าง/แก้ไขคำร้อง -->
+<p-toast />
+
+<div class="form-page">
+  <div class="page-header">
+    <h2>
+      <i class="pi pi-file-edit"></i>
+      {{ isEditMode ? 'แก้ไขคำร้อง' : 'สร้างคำร้องใหม่' }}
+    </h2>
+    <p-button
+      label="กลับ"
+      icon="pi pi-arrow-left"
+      severity="secondary"
+      [outlined]="true"
+      routerLink="/form-requests"
+    />
+  </div>
+
+  @if (loading) {
+    <div class="loading-state">
+      <i class="pi pi-spin pi-spinner" style="font-size: 2rem;"></i>
+      <p>กำลังโหลดข้อมูล...</p>
+    </div>
+  } @else {
+    <p-card>
+      <form (ngSubmit)="save()" class="form-grid">
+        <!-- หัวข้อ -->
+        <div class="field full-width">
+          <label for="title">
+            <span class="required">*</span> หัวข้อคำร้อง
+          </label>
+          <input
+            pInputText
+            id="title"
+            [(ngModel)]="formData.title"
+            name="title"
+            placeholder="กรอกหัวข้อคำร้อง"
+            class="w-full"
+            required
+          />
+        </div>
+
+        <!-- ประเภท -->
+        <div class="field">
+          <label for="type">ประเภทคำร้อง</label>
+          <p-select
+            id="type"
+            [(ngModel)]="formData.requestType"
+            name="requestType"
+            [options]="typeOptions"
+            optionLabel="label"
+            optionValue="value"
+            styleClass="w-full"
+          />
+        </div>
+
+        <!-- ความสำคัญ -->
+        <div class="field">
+          <label for="priority">ความสำคัญ</label>
+          <p-select
+            id="priority"
+            [(ngModel)]="formData.priority"
+            name="priority"
+            [options]="priorityOptions"
+            optionLabel="label"
+            optionValue="value"
+            styleClass="w-full"
+          />
+        </div>
+
+        <!-- วันกำหนดส่ง -->
+        <div class="field">
+          <label for="dueDate">วันกำหนดส่ง</label>
+          <p-datepicker
+            id="dueDate"
+            [(ngModel)]="formData.dueDate"
+            name="dueDate"
+            dateFormat="dd/mm/yy"
+            placeholder="เลือกวันที่"
+            styleClass="w-full"
+            [showIcon]="true"
+          />
+        </div>
+
+        <!-- รายละเอียด -->
+        <div class="field full-width">
+          <label for="description">
+            <span class="required">*</span> รายละเอียด
+          </label>
+          <textarea
+            pTextarea
+            id="description"
+            [(ngModel)]="formData.description"
+            name="description"
+            rows="5"
+            class="w-full"
+            placeholder="อธิบายรายละเอียดคำร้อง..."
+            required
+          ></textarea>
+        </div>
+
+        <!-- ไฟล์แนบ -->
+        <div class="field full-width">
+          <label>ไฟล์แนบ (สูงสุด 5 ไฟล์, ไม่เกิน 10MB/ไฟล์)</label>
+          <p-fileUpload
+            mode="advanced"
+            name="files"
+            [multiple]="true"
+            [maxFileSize]="10485760"
+            [fileLimit]="5"
+            [auto]="false"
+            [showUploadButton]="false"
+            chooseLabel="เลือกไฟล์"
+            (onSelect)="onFileSelect($event)"
+          >
+            <ng-template #empty>
+              <p class="text-center text-muted">ลากไฟล์มาวางที่นี่ หรือกดเลือกไฟล์</p>
+            </ng-template>
+          </p-fileUpload>
+        </div>
+
+        <!-- Actions -->
+        <div class="form-actions full-width">
+          <p-button
+            label="ยกเลิก"
+            severity="secondary"
+            [outlined]="true"
+            routerLink="/form-requests"
+          />
+          <p-button
+            type="submit"
+            [label]="isEditMode ? 'บันทึกการแก้ไข' : 'สร้างคำร้อง'"
+            icon="pi pi-save"
+            [loading]="saving"
+          />
+        </div>
+      </form>
+    </p-card>
+  }
+</div>

@@ -1,0 +1,204 @@
+<!-- รายละเอียดคำร้อง -->
+<p-toast />
+<p-confirmDialog />
+
+@if (loading) {
+  <div class="loading-state">
+    <i class="pi pi-spin pi-spinner" style="font-size: 2rem;"></i>
+    <p>กำลังโหลดข้อมูล...</p>
+  </div>
+}
+
+@if (formRequest) {
+  <div class="detail-page">
+    <!-- Header -->
+    <div class="page-header">
+      <div>
+        <h2>
+          <i class="pi pi-file"></i>
+          {{ formRequest.requestNumber }}
+        </h2>
+      </div>
+      <div class="header-actions">
+        <p-button
+          label="กลับ"
+          icon="pi pi-arrow-left"
+          severity="secondary"
+          [outlined]="true"
+          routerLink="/form-requests"
+        />
+
+        @if (formRequest.status === 'draft') {
+          <p-button
+            label="แก้ไข"
+            icon="pi pi-pencil"
+            severity="info"
+            [routerLink]="['/form-requests', formRequest.id, 'edit']"
+          />
+          <p-button
+            label="ส่งคำร้อง"
+            icon="pi pi-send"
+            (onClick)="submitRequest()"
+          />
+        }
+
+        @if (formRequest.status !== 'cancelled' && formRequest.status !== 'completed') {
+          <p-button
+            label="ยกเลิก"
+            icon="pi pi-times"
+            severity="danger"
+            [outlined]="true"
+            (onClick)="cancelRequest()"
+          />
+        }
+
+        @if (auth.isAdmin() && formRequest.status !== 'draft' && formRequest.status !== 'cancelled') {
+          <p-button
+            label="เปลี่ยนสถานะ"
+            icon="pi pi-cog"
+            severity="warn"
+            (onClick)="showStatusDialog = true"
+          />
+        }
+      </div>
+    </div>
+
+    <!-- Info Cards -->
+    <div class="detail-grid">
+      <p-card header="ข้อมูลคำร้อง" styleClass="detail-card">
+        <div class="info-grid">
+          <div class="info-item">
+            <label>หัวข้อ</label>
+            <span>{{ formRequest.title }}</span>
+          </div>
+          <div class="info-item">
+            <label>ประเภท</label>
+            <span>{{ typeLabels[formRequest.requestType] || formRequest.requestType }}</span>
+          </div>
+          <div class="info-item">
+            <label>ความสำคัญ</label>
+            <p-tag
+              [value]="priorityLabels[formRequest.priority] || formRequest.priority"
+              [severity]="getPrioritySeverity(formRequest.priority)"
+            />
+          </div>
+          <div class="info-item">
+            <label>สถานะ</label>
+            <p-tag
+              [value]="statusLabels[formRequest.status] || formRequest.status"
+              [severity]="getStatusSeverity(formRequest.status)"
+            />
+          </div>
+          <div class="info-item full-width">
+            <label>รายละเอียด</label>
+            <p class="description">{{ formRequest.description }}</p>
+          </div>
+          @if (formRequest.remarks) {
+            <div class="info-item full-width">
+              <label>หมายเหตุ</label>
+              <p class="description">{{ formRequest.remarks }}</p>
+            </div>
+          }
+        </div>
+      </p-card>
+
+      <p-card header="ข้อมูลเพิ่มเติม" styleClass="detail-card">
+        <div class="info-grid">
+          <div class="info-item">
+            <label>ผู้ร้องขอ</label>
+            <span>{{ formRequest.requester?.fullName || '-' }}</span>
+          </div>
+          <div class="info-item">
+            <label>วันที่สร้าง</label>
+            <span>{{ formRequest.createdAt | date:'dd/MM/yyyy HH:mm' }}</span>
+          </div>
+          @if (formRequest.dueDate) {
+            <div class="info-item">
+              <label>วันกำหนดส่ง</label>
+              <span>{{ formRequest.dueDate | date:'dd/MM/yyyy' }}</span>
+            </div>
+          }
+          @if (formRequest.approvedBy) {
+            <div class="info-item">
+              <label>ผู้อนุมัติ</label>
+              <span>{{ formRequest.approvedBy.fullName }}</span>
+            </div>
+            <div class="info-item">
+              <label>วันที่อนุมัติ</label>
+              <span>{{ formRequest.approvedAt | date:'dd/MM/yyyy HH:mm' }}</span>
+            </div>
+          }
+        </div>
+      </p-card>
+    </div>
+
+    <!-- ไฟล์แนบ -->
+    <p-card header="ไฟล์แนบ" styleClass="mt-3">
+      @if (attachments.length > 0) {
+        <div class="attachment-list">
+          @for (att of attachments; track att.id) {
+            <div class="attachment-item">
+              <i class="pi pi-paperclip"></i>
+              <span class="att-name">{{ att.fileName }}</span>
+              <span class="att-size">{{ (att.fileSize / 1024 / 1024).toFixed(2) }} MB</span>
+              <p-button
+                icon="pi pi-download"
+                [rounded]="true"
+                [text]="true"
+                pTooltip="ดาวน์โหลด"
+                (onClick)="downloadAttachment(att)"
+              />
+            </div>
+          }
+        </div>
+      } @else {
+        <p class="no-data">ไม่มีไฟล์แนบ</p>
+      }
+    </p-card>
+
+    <!-- Admin: Status Change Dialog -->
+    @if (showStatusDialog) {
+      <div class="dialog-overlay" (click)="showStatusDialog = false">
+        <div class="dialog-card" (click)="$event.stopPropagation()">
+          <h3>เปลี่ยนสถานะคำร้อง</h3>
+          <p-divider />
+          <div class="field">
+            <label>สถานะใหม่</label>
+            <p-select
+              [(ngModel)]="selectedNewStatus"
+              [options]="statusOptions"
+              optionLabel="label"
+              optionValue="value"
+              placeholder="เลือกสถานะ"
+              styleClass="w-full"
+            />
+          </div>
+          <div class="field">
+            <label>หมายเหตุ (ถ้ามี)</label>
+            <textarea
+              pTextarea
+              [(ngModel)]="statusRemarks"
+              rows="3"
+              class="w-full"
+              placeholder="กรอกหมายเหตุ..."
+            ></textarea>
+          </div>
+          <div class="dialog-actions">
+            <p-button
+              label="ยกเลิก"
+              severity="secondary"
+              [outlined]="true"
+              (onClick)="showStatusDialog = false"
+            />
+            <p-button
+              label="บันทึก"
+              icon="pi pi-check"
+              (onClick)="updateStatus()"
+              [disabled]="!selectedNewStatus"
+            />
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+}

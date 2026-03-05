@@ -1,0 +1,128 @@
+<!-- Admin: จัดการผู้ใช้ -->
+<p-toast />
+<p-confirmDialog />
+
+<div class="user-management">
+  <div class="page-header">
+    <h2><i class="pi pi-users"></i> จัดการผู้ใช้งาน</h2>
+  </div>
+
+  <!-- Stats Cards -->
+  @if (stats) {
+    <div class="stat-cards">
+      <div class="stat-card">
+        <div class="stat-icon" style="background: #dbeafe; color: #3b82f6;">
+          <i class="pi pi-users"></i>
+        </div>
+        <div class="stat-info">
+          <span class="stat-value">{{ stats.total }}</span>
+          <span class="stat-label">ผู้ใช้ทั้งหมด</span>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon" style="background: #d1fae5; color: #059669;">
+          <i class="pi pi-check-circle"></i>
+        </div>
+        <div class="stat-info">
+          <span class="stat-value">{{ stats.active }}</span>
+          <span class="stat-label">ใช้งานอยู่</span>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon" style="background: #fee2e2; color: #dc2626;">
+          <i class="pi pi-ban"></i>
+        </div>
+        <div class="stat-info">
+          <span class="stat-value">{{ stats.inactive }}</span>
+          <span class="stat-label">ปิดการใช้งาน</span>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Search -->
+  <p-card styleClass="mb-3">
+    <div class="search-row">
+      <input
+        pInputText
+        [(ngModel)]="search"
+        placeholder="ค้นหาผู้ใช้... (ชื่อ, username, email)"
+        (keyup.enter)="onSearch()"
+        class="search-input"
+      />
+      <p-button label="ค้นหา" icon="pi pi-search" (onClick)="onSearch()" />
+    </div>
+  </p-card>
+
+  <!-- Users Table -->
+  <p-table
+    [value]="users"
+    [loading]="loading"
+    [paginator]="true"
+    [rows]="limit"
+    [totalRecords]="totalRecords"
+    [lazy]="true"
+    (onLazyLoad)="onPageChange($event)"
+    [rowHover]="true"
+    [showCurrentPageReport]="true"
+    currentPageReportTemplate="แสดง {first} ถึง {last} จาก {totalRecords} รายการ"
+    [rowsPerPageOptions]="[10, 25, 50]"
+    styleClass="p-datatable-sm"
+  >
+    <ng-template #header>
+      <tr>
+        <th>Username</th>
+        <th>ชื่อ-นามสกุล</th>
+        <th>อีเมล</th>
+        <th>แผนก</th>
+        <th style="width: 140px">บทบาท</th>
+        <th style="width: 100px">สถานะ</th>
+        <th style="width: 100px">จัดการ</th>
+      </tr>
+    </ng-template>
+
+    <ng-template #body let-user>
+      <tr>
+        <td><strong>{{ user.username }}</strong></td>
+        <td>{{ user.fullName }}</td>
+        <td>{{ user.email || '-' }}</td>
+        <td>{{ user.department || '-' }}</td>
+        <td>
+          <p-select
+            [ngModel]="user.role"
+            [options]="roleOptions"
+            optionLabel="label"
+            optionValue="value"
+            (onChange)="changeRole(user, $event.value)"
+            styleClass="w-full"
+          />
+        </td>
+        <td>
+          <p-tag
+            [value]="user.isActive ? 'ใช้งาน' : 'ปิด'"
+            [severity]="user.isActive ? 'success' : 'danger'"
+          />
+        </td>
+        <td>
+          <p-button
+            [icon]="user.isActive ? 'pi pi-ban' : 'pi pi-check'"
+            [rounded]="true"
+            [text]="true"
+            [severity]="user.isActive ? 'danger' : 'success'"
+            [pTooltip]="user.isActive ? 'ปิดการใช้งาน' : 'เปิดการใช้งาน'"
+            (onClick)="toggleActive(user)"
+          />
+        </td>
+      </tr>
+    </ng-template>
+
+    <ng-template #emptymessage>
+      <tr>
+        <td colspan="7" class="text-center p-4">
+          <i class="pi pi-users" style="font-size: 2rem; color: #94a3b8;"></i>
+          <p style="color: #94a3b8; margin-top: 0.5rem;">ไม่พบข้อมูลผู้ใช้</p>
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>

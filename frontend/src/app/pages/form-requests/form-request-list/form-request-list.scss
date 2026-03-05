@@ -1,0 +1,33 @@
+/* ─── Form Request List Styles ─────────────────── */
+
+.filter-row {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-end;
+  flex-wrap: wrap;
+}
+
+.filter-item {
+  flex: 1;
+  min-width: 180px;
+}
+
+.cursor-pointer {
+  cursor: pointer;
+}
+
+:host ::ng-deep {
+  .filter-card .p-card-body {
+    padding: 1rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .filter-row {
+    flex-direction: column;
+  }
+
+  .filter-item {
+    min-width: 100%;
+  }
+}

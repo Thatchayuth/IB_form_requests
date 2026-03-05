@@ -1,0 +1,103 @@
+/* ─── PrimeIcons ──────────────────────────────────── */
+@import 'primeicons/primeicons.css';
+
+/* ─── Global Styles — ระบบจัดการคำร้อง ────────────── */
+
+:root {
+  --sidebar-width: 260px;
+  --header-height: 60px;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+  font-family: 'Segoe UI', 'Noto Sans Thai', Tahoma, Geneva, Verdana, sans-serif;
+  font-size: 14px;
+  color: #333;
+  background-color: #f8f9fa;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+/* ─── Scrollbar ──────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #a1a1a1;
+}
+
+/* ─── Utility Classes ────────────────────────────── */
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+
+  h2 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #1e293b;
+  }
+}
+
+.card-container {
+  display: grid;
+  gap: 1rem;
+
+  &.cols-2 { grid-template-columns: repeat(2, 1fr); }
+  &.cols-3 { grid-template-columns: repeat(3, 1fr); }
+  &.cols-4 { grid-template-columns: repeat(4, 1fr); }
+}
+
+/* Status Badge Colors */
+.status-badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 1rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  display: inline-block;
+
+  &.draft       { background: #e2e8f0; color: #475569; }
+  &.submitted   { background: #dbeafe; color: #1d4ed8; }
+  &.under_review { background: #fef3c7; color: #b45309; }
+  &.approved    { background: #d1fae5; color: #059669; }
+  &.rejected    { background: #fee2e2; color: #dc2626; }
+  &.completed   { background: #e0e7ff; color: #4338ca; }
+  &.cancelled   { background: #f3f4f6; color: #6b7280; }
+}
+
+/* Priority Badge Colors */
+.priority-badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 1rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  display: inline-block;
+
+  &.low    { background: #d1fae5; color: #059669; }
+  &.medium { background: #fef3c7; color: #b45309; }
+  &.high   { background: #fee2e2; color: #dc2626; }
+  &.urgent { background: #fce7f3; color: #be185d; }
+}

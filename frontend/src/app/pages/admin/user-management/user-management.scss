@@ -1,0 +1,63 @@
+/* ─── User Management Styles ───────────────────── */
+
+.stat-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.stat-card {
+  background: #fff;
+  border-radius: 10px;
+  padding: 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+.stat-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  i {
+    font-size: 1.3rem;
+  }
+}
+
+.stat-info {
+  display: flex;
+  flex-direction: column;
+
+  .stat-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1e293b;
+  }
+
+  .stat-label {
+    font-size: 0.8rem;
+    color: #64748b;
+  }
+}
+
+.search-row {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.search-input {
+  flex: 1;
+}
+
+@media (max-width: 768px) {
+  .stat-cards {
+    grid-template-columns: 1fr;
+  }
+}
