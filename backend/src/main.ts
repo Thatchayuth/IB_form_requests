@@ -3,6 +3,8 @@ import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import helmet from 'helmet';
 import { AppModule } from './app.module';
+import { HttpExceptionFilter } from './common/filters/http-exception.filter';
+import { TransformInterceptor } from './common/interceptors/transform.interceptor';
 
 /**
  * จุดเริ่มต้นของแอปพลิเคชัน
@@ -33,6 +35,12 @@ async function bootstrap() {
 
   // กำหนด prefix /api สำหรับ endpoint ทั้งหมด
   app.setGlobalPrefix('api');
+
+  // ตั้งค่า Global Exception Filter - จัดการ error response ให้เป็นรูปแบบเดียวกัน
+  app.useGlobalFilters(new HttpExceptionFilter());
+
+  // ตั้งค่า Global Interceptor - ครอบ response สำเร็จเป็น { success, data, timestamp }
+  app.useGlobalInterceptors(new TransformInterceptor());
 
   // ตั้งค่า Global Validation Pipe
   // - whitelist: ตัด property ที่ไม่ได้ประกาศใน DTO ออก
