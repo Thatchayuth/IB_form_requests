@@ -80,6 +80,14 @@ export class LayoutComponent {
     this.mobileOpen = false;
   }
 
+  /**
+   * Sidebar ขยาย? (desktop: !collapsed, mobile: mobileOpen)
+   * ใช้ใน template เพื่อแสดง/ซ่อนข้อความเมนู + ขนาด sidebar
+   */
+  get isExpanded(): boolean {
+    return this.isMobile ? this.mobileOpen : !this.sidebarCollapsed;
+  }
+
   /** เมนูหลักสำหรับ User */
   get menuItems() {
     const items = [

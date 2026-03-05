@@ -52,82 +52,168 @@
     </div>
   </div>
 
-  <!-- Data Table -->
-  <p-table
-    [value]="formRequests"
-    [loading]="loading"
-    [paginator]="true"
-    [rows]="limit"
-    [totalRecords]="totalRecords"
-    [lazy]="true"
-    (onLazyLoad)="onPageChange($event)"
-    [rowHover]="true"
-    [showCurrentPageReport]="true"
-    currentPageReportTemplate="แสดง {first} ถึง {last} จาก {totalRecords} รายการ"
-    [rowsPerPageOptions]="[10, 25, 50]"
-    styleClass="p-datatable-sm"
-  >
-    <ng-template #header>
-      <tr>
-        <th style="width: 130px">เลขคำร้อง</th>
-        <th>หัวข้อ</th>
-        <th style="width: 120px">ประเภท</th>
-        <th style="width: 100px">ความสำคัญ</th>
-        <th style="width: 120px">สถานะ</th>
-        <th style="width: 130px">วันที่สร้าง</th>
-        <th style="width: 100px">จัดการ</th>
-      </tr>
-    </ng-template>
+  <!-- ═══ Desktop: Data Table (ซ่อนบนจอเล็ก) ═══ -->
+  <div class="hidden md:block">
+    <p-table
+      [value]="formRequests"
+      [loading]="loading"
+      [paginator]="true"
+      [rows]="limit"
+      [totalRecords]="totalRecords"
+      [lazy]="true"
+      (onLazyLoad)="onPageChange($event)"
+      [rowHover]="true"
+      [showCurrentPageReport]="true"
+      currentPageReportTemplate="แสดง {first} ถึง {last} จาก {totalRecords} รายการ"
+      [rowsPerPageOptions]="[10, 25, 50]"
+      styleClass="p-datatable-sm"
+    >
+      <ng-template #header>
+        <tr>
+          <th style="width: 130px">เลขคำร้อง</th>
+          <th>หัวข้อ</th>
+          <th style="width: 120px">ประเภท</th>
+          <th style="width: 100px">ความสำคัญ</th>
+          <th style="width: 120px">สถานะ</th>
+          <th style="width: 130px">วันที่สร้าง</th>
+          <th style="width: 100px">จัดการ</th>
+        </tr>
+      </ng-template>
 
-    <ng-template #body let-item>
-      <tr (dblclick)="viewDetail(item.id)" class="cursor-pointer">
-        <td>
-          <strong>{{ item.requestNumber }}</strong>
-        </td>
-        <td>{{ item.title }}</td>
-        <td>{{ item.requestType }}</td>
-        <td>
-          <p-tag
-            [value]="priorityLabels[item.priority] || item.priority"
-            [severity]="getPrioritySeverity(item.priority)"
-          />
-        </td>
-        <td>
-          <p-tag
-            [value]="statusLabels[item.status] || item.status"
-            [severity]="getStatusSeverity(item.status)"
-          />
-        </td>
-        <td>{{ item.createdAt | date:'dd/MM/yyyy HH:mm' }}</td>
-        <td>
-          <p-button
-            icon="pi pi-eye"
-            [rounded]="true"
-            [text]="true"
-            pTooltip="ดูรายละเอียด"
-            (onClick)="viewDetail(item.id)"
-          />
-          @if (item.status === 'Draft') {
+      <ng-template #body let-item>
+        <tr (dblclick)="viewDetail(item.id)" class="cursor-pointer">
+          <td>
+            <strong>{{ item.requestNumber }}</strong>
+          </td>
+          <td>{{ item.title }}</td>
+          <td>{{ item.requestType }}</td>
+          <td>
+            <p-tag
+              [value]="priorityLabels[item.priority] || item.priority"
+              [severity]="getPrioritySeverity(item.priority)"
+            />
+          </td>
+          <td>
+            <p-tag
+              [value]="statusLabels[item.status] || item.status"
+              [severity]="getStatusSeverity(item.status)"
+            />
+          </td>
+          <td>{{ item.createdAt | date:'dd/MM/yyyy HH:mm' }}</td>
+          <td>
             <p-button
-              icon="pi pi-pencil"
+              icon="pi pi-eye"
               [rounded]="true"
               [text]="true"
-              severity="info"
-              pTooltip="แก้ไข"
-              (onClick)="editRequest(item.id)"
+              pTooltip="ดูรายละเอียด"
+              (onClick)="viewDetail(item.id)"
             />
-          }
-        </td>
-      </tr>
-    </ng-template>
+            @if (item.status === 'Draft') {
+              <p-button
+                icon="pi pi-pencil"
+                [rounded]="true"
+                [text]="true"
+                severity="info"
+                pTooltip="แก้ไข"
+                (onClick)="editRequest(item.id)"
+              />
+            }
+          </td>
+        </tr>
+      </ng-template>
 
-    <ng-template #emptymessage>
-      <tr>
-        <td colspan="7" class="text-center py-8">
-          <i class="pi pi-inbox text-4xl text-slate-400"></i>
-          <p class="text-slate-400 mt-2">ไม่พบข้อมูลคำร้อง</p>
-        </td>
-      </tr>
-    </ng-template>
-  </p-table>
+      <ng-template #emptymessage>
+        <tr>
+          <td colspan="7" class="text-center py-8">
+            <i class="pi pi-inbox text-4xl text-slate-400"></i>
+            <p class="text-slate-400 mt-2">ไม่พบข้อมูลคำร้อง</p>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+
+  <!-- ═══ Mobile: Card View (แสดงเฉพาะจอเล็ก) ═══ -->
+  <div class="block md:hidden">
+    @if (loading) {
+      <div class="text-center py-8">
+        <i class="pi pi-spin pi-spinner text-3xl text-slate-400"></i>
+      </div>
+    } @else if (formRequests.length === 0) {
+      <div class="text-center py-8 bg-white rounded-xl shadow-sm">
+        <i class="pi pi-inbox text-4xl text-slate-400"></i>
+        <p class="text-slate-400 mt-2">ไม่พบข้อมูลคำร้อง</p>
+      </div>
+    } @else {
+      <div class="space-y-3">
+        @for (item of formRequests; track item.id) {
+          <div
+            class="bg-white rounded-xl shadow-sm p-4 active:bg-slate-50 transition-colors"
+            (click)="viewDetail(item.id)"
+          >
+            <!-- แถวบน: เลขคำร้อง + สถานะ -->
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xs font-bold text-indigo-600">{{ item.requestNumber }}</span>
+              <p-tag
+                [value]="statusLabels[item.status] || item.status"
+                [severity]="getStatusSeverity(item.status)"
+              />
+            </div>
+
+            <!-- หัวข้อ -->
+            <h3 class="font-semibold text-slate-800 text-sm mb-2 line-clamp-2">{{ item.title }}</h3>
+
+            <!-- แถวล่าง: ประเภท + ความสำคัญ + วันที่ -->
+            <div class="flex items-center justify-between text-xs text-slate-500">
+              <div class="flex items-center gap-2">
+                <span>{{ item.requestType }}</span>
+                <span class="text-slate-300">|</span>
+                <p-tag
+                  [value]="priorityLabels[item.priority] || item.priority"
+                  [severity]="getPrioritySeverity(item.priority)"
+                />
+              </div>
+              <span>{{ item.createdAt | date:'dd/MM/yy' }}</span>
+            </div>
+
+            <!-- ปุ่มจัดการ (เฉพาะ Draft) -->
+            @if (item.status === 'Draft') {
+              <div class="flex justify-end mt-2 pt-2 border-t border-slate-100">
+                <p-button
+                  icon="pi pi-pencil"
+                  label="แก้ไข"
+                  [text]="true"
+                  severity="info"
+                  size="small"
+                  (onClick)="editRequest(item.id); $event.stopPropagation()"
+                />
+              </div>
+            }
+          </div>
+        }
+      </div>
+
+      <!-- Mobile Pagination -->
+      <div class="flex items-center justify-between mt-4 text-sm text-slate-500">
+        <span>{{ totalRecords }} รายการ</span>
+        <div class="flex gap-2">
+          <p-button
+            icon="pi pi-chevron-left"
+            [text]="true"
+            [disabled]="page <= 1"
+            (onClick)="page = page - 1; loadData()"
+            size="small"
+          />
+          <span class="flex items-center px-2">หน้า {{ page }}</span>
+          <p-button
+            icon="pi pi-chevron-right"
+            [text]="true"
+            [disabled]="page * limit >= totalRecords"
+            (onClick)="page = page + 1; loadData()"
+            size="small"
+          />
+        </div>
+      </div>
+    }
+  </div>
 </div>
