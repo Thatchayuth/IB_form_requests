@@ -67,6 +67,10 @@ export class User {
   @Column({ type: 'bit', default: true })
   isActive: boolean;
 
+  @ApiProperty({ description: 'เวลาเข้าสู่ระบบล่าสุด', required: false })
+  @Column({ type: 'datetime2', nullable: true })
+  lastLoginAt: Date;
+
   @ApiProperty({ description: 'วันที่สร้าง' })
   @CreateDateColumn({ type: 'datetime2' })
   createdAt: Date;

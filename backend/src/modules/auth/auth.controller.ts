@@ -1,10 +1,11 @@
-import { Controller, Post, Get, Body, UseGuards, HttpCode, HttpStatus } from '@nestjs/common';
+import { Controller, Post, Get, Body, UseGuards, HttpCode, HttpStatus, Req } from '@nestjs/common';
 import {
   ApiTags,
   ApiOperation,
   ApiResponse,
   ApiBearerAuth,
 } from '@nestjs/swagger';
+import { Request } from 'express';
 import { AuthService } from './auth.service';
 import { AdLoginDto } from './dto/ad-login.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
@@ -30,13 +31,18 @@ export class AuthController {
    * → ส่ง Basic Auth ไปยัง AD API → ได้ข้อมูลผู้ใช้ → Insert/Update ในระบบ → สร้าง JWT
    */
   @Post('login')
-  @HttpCode(HttpStatus.OK) // ส่ง 200 แทน 201
+  @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'เข้าสู่ระบบผ่าน Active Directory' })
   @ApiResponse({ status: 200, description: 'เข้าสู่ระบบสำเร็จ ได้รับ JWT token' })
   @ApiResponse({ status: 401, description: 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง' })
   @ApiResponse({ status: 500, description: 'ไม่สามารถเชื่อมต่อ AD ได้' })
-  async login(@Body() adLoginDto: AdLoginDto) {
-    return this.authService.login(adLoginDto);
+  async login(@Body() adLoginDto: AdLoginDto, @Req() req: Request) {
+    // ─── ดึง client IP สำหรับ audit log ──────────────────
+    const clientIp =
+      (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() ||
+      req.ip ||
+      'unknown';
+    return this.authService.login(adLoginDto, clientIp);
   }
 
   /**
